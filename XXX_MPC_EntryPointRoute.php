@@ -62,6 +62,11 @@ abstract class XXX_MPC_EntryPointRoute
 				break;
 		}
 		
+		if ($result != '')
+		{
+			$result = XXX_MPC_Router::cleanRoute($result);
+		}
+		
 		return $result;
 	}
 	
