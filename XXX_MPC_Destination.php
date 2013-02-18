@@ -107,7 +107,7 @@ class XXX_MPC_Destination
 			}
 		}
 	}
-		
+	
 	public function tryRewritingRouteRemainder ()
 	{
 		// Determine the remainder
