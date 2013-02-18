@@ -7,6 +7,11 @@ class XXX_MPC_Destination
 	public $rawRoute = '';
 	public $rawRouteParts = '';
 	
+	// TODO
+	public $rawModuleRoutePrefix = '';
+	public $rawControllerRoutePrefix = '';
+	public $rawActionRoutePrefix = '';
+	
 	public $rewrittenRoute = '';
 	public $rewrittenRouteParts = array();
 	
@@ -102,7 +107,7 @@ class XXX_MPC_Destination
 			}
 		}
 	}
-	
+		
 	public function tryRewritingRouteRemainder ()
 	{
 		// Determine the remainder
@@ -118,18 +123,21 @@ class XXX_MPC_Destination
 		$tempRewrittenRoutePartsRemainder = explode('/', $tempRewrittenRouteRemainder);
 		
 		// Append the new remainder
-		if ($this->rewrittenRoute == '')
+		if ($tempRewrittenRouteRemainder != '')
 		{
-			$this->rewrittenRoute = $tempRewrittenRouteRemainder;
-		}
-		else
-		{
-			$this->rewrittenRoute .= '/' . $tempRewrittenRouteRemainder;
-		}
+			if ($this->rewrittenRoute == '')
+			{
+				$this->rewrittenRoute = $tempRewrittenRouteRemainder;
+			}
+			else
+			{
+				$this->rewrittenRoute .= '/' . $tempRewrittenRouteRemainder;
+			}
 		
-		foreach ($tempRewrittenRoutePartsRemainder as $tempRewrittenRoutePartRemainder)
-		{
-			$this->rewrittenRouteParts[] = $tempRewrittenRoutePartRemainder;
+			foreach ($tempRewrittenRoutePartsRemainder as $tempRewrittenRoutePartRemainder)
+			{
+				$this->rewrittenRouteParts[] = $tempRewrittenRoutePartRemainder;
+			}
 		}
 	}
 	
@@ -147,7 +155,7 @@ class XXX_MPC_Destination
 			// As is
 			$alternatives[] = $currentPart;
 			// Aliassed
-			$alternatives[] = XXX_MPC_Router::processModuleAliasses($currentPart, $this->canonicalModulePathParts);
+			$alternatives[] = XXX_MPC_Router::processModuleAliasses($currentPart, $this->canonicalRouteParts);
 			
 			foreach ($alternatives as $alternative)
 			{
@@ -237,56 +245,61 @@ class XXX_MPC_Destination
 			$currentPart = $this->rewrittenRouteParts[$this->currentPartIndex];
 			
 			// TODO if the part or aliassed part is a subDirectory? Traverse it untill it's not, is this benificial? Only for presenters probably, but then it's ok.
-				
-			$alternatives = array();
-			// As is
-			$alternatives[] = $currentPart;
-			// Aliassed
-			$alternatives[] = XXX_MPC_Router::processControllerAliasses($currentPart, $this->canonicalModulePathParts);
 			
-			$tempPrefix =  XXX::$deploymentInformation['project'] . '_Controller_';
-			if (!XXX_String::beginsWith($currentPart, $tempPrefix))
-			{
-				// Capitalized name, e.g. Www
-				$alternatives[] = $tempPrefix . XXX_String::capitalizeFirstWord($currentPart);
-				// Upper case name, e.g. WWW
-				$alternatives[] = $tempPrefix . XXX_String::convertToUpperCase($currentPart);
-								
-				// Capitalized module name, e.g. Www
-				$alternatives[] = $tempPrefix . XXX_String::capitalizeFirstWord($this->canonicalModuleName);
-				// Upper case module name, e.g. WWW
-				$alternatives[] = $tempPrefix . XXX_String::convertToUpperCase($this->canonicalModuleName);
-				
-				// Same principe with parent modules included in the namespace
-				if (XXX_Array::getFirstLevelItemTotal($this->canonicalModulePathParts) > 0)
-				{
-					$tempPart = '';
-					for ($i = 0, $iEnd = XXX_Array::getFirstLevelItemTotal($this->canonicalModulePathParts); $i < $iEnd; ++$i)
-					{
-						if ($i > 0)
-						{
-							$tempPart .= '_';
-						}
-						
-						$tempPart .= XXX_String::capitalizeFirstWord($this->canonicalModulePathParts[$i]);
-					}
-					
-					// Capitalized parent module, e.g. FirstParentModule_SecondParentModule_Www
-					$alternatives[] = $tempPrefix . ($tempPart != '' ? $tempPart . '_' : '') . XXX_String::capitalizeFirstWord($currentPart);
-					// Upper case parent module, e.g. FirstParentModule_SecondParentModule_WWW
-					$alternatives[] = $tempPrefix . ($tempPart != '' ? $tempPart . '_' : '') . XXX_String::convertToUpperCase($currentPart);
-					
-					// Capitalized module name, e.g. FirstParentModule_SecondParentModule_Module
-					$alternatives[] = $tempPrefix . $tempPart;
-					// Upper case module name, e.g. FirstParentModule_SecondParentModule_Module
-					$alternatives[] = $tempPrefix . $tempPart;
-				}
-			}
-			
+			$partAlternatives = array();
+			$partAlternatives[] = $currentPart;
+			$partAlternatives[] = XXX_MPC_Router::processControllerAliasses($currentPart, $this->canonicalRouteParts);
 			if (XXX_MPC_Router::$defaultController != '')
 			{
-				// Default
-				$alternatives[] = XXX_MPC_Router::$defaultController;
+				$partAlternatives[] = XXX_MPC_Router::$defaultController;
+			}
+			
+			
+			$alternatives = array();
+			
+			foreach ($partAlternatives as $partAlternative)
+			{			
+				// As is
+				$alternatives[] = $partAlternative;
+				
+				$tempPrefix =  XXX::$deploymentInformation['project'] . '_Controller_';
+				if (!XXX_String::beginsWith($partAlternative, $tempPrefix))
+				{
+					// Capitalized name, e.g. Www
+					$alternatives[] = $tempPrefix . XXX_String::capitalizeFirstWord($partAlternative);
+					// Upper case name, e.g. WWW
+					$alternatives[] = $tempPrefix . XXX_String::convertToUpperCase($partAlternative);
+									
+					// Capitalized module name, e.g. Www
+					$alternatives[] = $tempPrefix . XXX_String::capitalizeFirstWord($this->canonicalModuleName);
+					// Upper case module name, e.g. WWW
+					$alternatives[] = $tempPrefix . XXX_String::convertToUpperCase($this->canonicalModuleName);
+					
+					// Same principe with parent modules included in the namespace
+					if (XXX_Array::getFirstLevelItemTotal($this->canonicalModulePathParts) > 0)
+					{
+						$tempPart = '';
+						for ($i = 0, $iEnd = XXX_Array::getFirstLevelItemTotal($this->canonicalModulePathParts); $i < $iEnd; ++$i)
+						{
+							if ($i > 0)
+							{
+								$tempPart .= '_';
+							}
+							
+							$tempPart .= XXX_String::capitalizeFirstWord($this->canonicalModulePathParts[$i]);
+						}
+						
+						// Capitalized parent module, e.g. FirstParentModule_SecondParentModule_Www
+						$alternatives[] = $tempPrefix . ($tempPart != '' ? $tempPart . '_' : '') . XXX_String::capitalizeFirstWord($partAlternative);
+						// Upper case parent module, e.g. FirstParentModule_SecondParentModule_WWW
+						$alternatives[] = $tempPrefix . ($tempPart != '' ? $tempPart . '_' : '') . XXX_String::convertToUpperCase($partAlternative);
+						
+						// Capitalized module name, e.g. FirstParentModule_SecondParentModule_Module
+						$alternatives[] = $tempPrefix . $tempPart;
+						// Upper case module name, e.g. FirstParentModule_SecondParentModule_Module
+						$alternatives[] = $tempPrefix . $tempPart;
+					}
+				}
 			}
 			
 			foreach ($alternatives as $alternative)
@@ -297,7 +310,7 @@ class XXX_MPC_Destination
 					
 					$this->canonicalControllerName = $alternative;
 					
-					$this->canonicalRouteParts[] = $this->canonicalControllerName;				
+					$this->canonicalRouteParts[] = $this->canonicalControllerName;
 					
 					include_once XXX_Path_Local::extendPath($this->canonicalModulePathPrefix, XXX_MPC_Router::$directoryNames['controllers'] . XXX_OperatingSystem::$directorySeparator . $this->canonicalControllerName . '.php');
 					
@@ -327,7 +340,7 @@ class XXX_MPC_Destination
 			// As is
 			$alternatives[] = $currentPart;
 			// Aliassed
-			$alternatives[] = XXX_MPC_Router::processActionAliasses($currentPart, $this->canonicalModulePathParts);
+			$alternatives[] = XXX_MPC_Router::processActionAliasses($currentPart, $this->canonicalRouteParts);
 			if (XXX_MPC_Router::$defaultAction != '')
 			{
 				// Default
@@ -385,7 +398,20 @@ class XXX_MPC_Destination
 			$this->fullyTraversedRouteParts = true;
 			
 			$this->canonicalRoute = XXX_Array::joinValuesToString($this->canonicalRouteParts, '/');
-						
+			
+			
+			// rawActionRoutePrefix
+			$lastNonArgumentPartIndex = XXX_Array::getFirstLevelItemTotal($this->rawRouteParts) - XXX_Array::getFirstLevelItemTotal($this->arguments);
+			
+			$this->rawActionRoutePrefix = implode('/', array_slice($this->rawRouteParts, 0, $lastNonArgumentPartIndex)) . '/';
+			
+			// rawControllerRoutePrefix
+			$this->rawControllerRoutePrefix = implode('/', array_slice($this->rawRouteParts, 0, $lastNonArgumentPartIndex - 1)) . '/';
+			
+			// rawModuleRoutePrefix
+			$this->rawModuleRoutePrefix = implode('/', array_slice($this->rawRouteParts, 0, $lastNonArgumentPartIndex - 2)) . '/';
+			
+			
 			$this->composePaths();
 		}
 	}

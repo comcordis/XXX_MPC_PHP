@@ -33,7 +33,7 @@ abstract class XXX_MPC_Router
 	
 	public static $requireModuleInitializer = false;
 	public static $defaultModuleInitializer = 'initialize.php';	
-	public static $defaultController = '';
+	public static $defaultController = 'Main';
 	public static $defaultAction = 'index';
 	
 	public static $invalidRouteRoute = '';
@@ -205,7 +205,7 @@ abstract class XXX_MPC_Router
 		self::$invalidRouteRoute = $invalidRouteRoute;
 	}
 	
-	public static function addRouteRewrite ($original = '', $rewrite = '', $type = 'stringBegin', $last = true, $parentCanonicalModulePathParts = array())
+	public static function addRouteRewrite ($original = '', $rewrite = '', $type = 'stringBegin', $last = true, $parentCanonicalRouteParts = array())
 	{
 		$type = XXX_Default::toOption($type, array('stringBegin', 'string', 'pattern'), 'stringBegin');
 		
@@ -213,7 +213,7 @@ abstract class XXX_MPC_Router
 				
 		self::$routeRewrites[] = array
 		(
-			'parentCanonicalModulePathParts' => $parentCanonicalModulePathParts,
+			'parentCanonicalRouteParts' => $parentCanonicalRouteParts,
 			'type' => $type,
 			'original' => $original,
 			'rewrite' => $rewrite,
@@ -222,33 +222,33 @@ abstract class XXX_MPC_Router
 	}
 	
 	
-	public static function addModuleAlias ($original = '', $alias = '', $last = true, $parentCanonicalModulePathParts = array())
+	public static function addModuleAlias ($original = '', $alias = '', $last = true, $parentCanonicalRouteParts = array())
 	{
 		self::$moduleAliasses[] = array
 		(
-			'parentCanonicalModulePathParts' => $parentCanonicalModulePathParts,
+			'parentCanonicalRouteParts' => $parentCanonicalRouteParts,
 			'original' => $original,
 			'alias' => $alias,
 			'last' => $last
 		);
 	}
 	
-	public static function addControllerAlias ($original = '', $alias = '', $last = true, $parentCanonicalModulePathParts = array())
+	public static function addControllerAlias ($original = '', $alias = '', $last = true, $parentCanonicalRouteParts = array())
 	{
 		self::$controllerAliasses[] = array
 		(
-			'parentCanonicalModulePathParts' => $parentCanonicalModulePathParts,
+			'parentCanonicalRouteParts' => $parentCanonicalRouteParts,
 			'original' => $original,
 			'alias' => $alias,
 			'last' => $last
 		);
 	}
 	
-	public static function addActionAlias ($original = '', $alias = '', $last = true, $parentCanonicalModulePathParts = array())
+	public static function addActionAlias ($original = '', $alias = '', $last = true, $parentCanonicalRouteParts = array())
 	{
 		self::$actionAliasses[] = array
 		(
-			'parentCanonicalModulePathParts' => $parentCanonicalModulePathParts,
+			'parentCanonicalRouteParts' => $parentCanonicalRouteParts,
 			'original' => $original,
 			'alias' => $alias,
 			'last' => $last
@@ -258,7 +258,7 @@ abstract class XXX_MPC_Router
 	// false for every module on any level
 	// array() for project root
 	// array('httpServer', 'www') for httpServer/www
-	public static function comparseParentCanonicalModulePathParts ($original = array(), $comparison = array())
+	public static function comparseParentCanonicalRouteParts ($original = array(), $comparison = array())
 	{
 		$result = false;
 		
@@ -282,7 +282,7 @@ abstract class XXX_MPC_Router
 		return $result;
 	}
 	
-	public static function processModuleAliasses ($module = '', $parentCanonicalModulePathParts = array())
+	public static function processModuleAliasses ($module = '', $parentCanonicalRouteParts = array())
 	{
 		if ($module != '')
 		{
@@ -290,7 +290,7 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				if (self::comparseParentCanonicalModulePathParts($moduleAlias['parentCanonicalModulePathParts'], $parentCanonicalModulePathParts))
+				if (self::comparseParentCanonicalRouteParts($moduleAlias['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
 				{
 					if ($module == $moduleAlias['alias'])
 					{
@@ -311,7 +311,7 @@ abstract class XXX_MPC_Router
 		return $module;
 	}
 	
-	public static function processControllerAliasses ($controller = '', $parentCanonicalModulePathParts = array())
+	public static function processControllerAliasses ($controller = '', $parentCanonicalRouteParts = array())
 	{
 		if ($controller != '')
 		{
@@ -319,7 +319,7 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				if (self::comparseParentCanonicalModulePathParts($controllerAlias['parentCanonicalModulePathParts'], $parentCanonicalModulePathParts))
+				if (self::comparseParentCanonicalRouteParts($controllerAlias['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
 				{
 					if ($controller == $controllerAlias['alias'])
 					{
@@ -340,7 +340,7 @@ abstract class XXX_MPC_Router
 		return $controller;
 	}
 	
-	public static function processActionAliasses ($action = '', $parentCanonicalModulePathParts = array())
+	public static function processActionAliasses ($action = '', $parentCanonicalRouteParts = array())
 	{
 		if ($action != '')
 		{
@@ -348,7 +348,7 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				if (self::comparseParentCanonicalModulePathParts($actionAlias['parentCanonicalModulePathParts'], $parentCanonicalModulePathParts))
+				if (self::comparseParentCanonicalRouteParts($actionAlias['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
 				{
 					if ($action == $actionAlias['alias'])
 					{
@@ -370,7 +370,7 @@ abstract class XXX_MPC_Router
 	}
 	
 	
-	public static function processRouteRewrites ($route = '', $parentCanonicalModulePathParts = array())
+	public static function processRouteRewrites ($route = '', $parentCanonicalRouteParts = array())
 	{
 		if ($route != '')
 		{
@@ -378,7 +378,7 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				if (self::comparseParentCanonicalModulePathParts($actionAlias['parentCanonicalModulePathParts'], $parentCanonicalModulePathParts))
+				if (self::comparseParentCanonicalRouteParts($actionAlias['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
 				{
 					switch ($routeRewrite['type'])
 					{
