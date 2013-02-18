@@ -42,10 +42,10 @@ class XXX_MPC_Destination
 	
 	public function __construct ($route = '', $presenterContext = false)
 	{
-		$this->rawRoute = XXX_MPC_Router::stripEntryPointPrefixFromRoute($route);
+		$this->rawRoute = $route;
 		$this->rawRouteParts = XXX_String::splitToArray($this->rawRoute, '/');
 		
-		$this->rewrittenRoute = XXX_MPC_Router::processRouteRewrites($route);		
+		$this->rewrittenRoute = XXX_MPC_Router::processRouteRewrites($route);
 		$this->rewrittenRouteParts = XXX_String::splitToArray($this->rewrittenRoute, '/');
 		
 		$this->presenterContext = $presenterContext;
@@ -56,7 +56,7 @@ class XXX_MPC_Destination
 	public function traverseNextRoutePart ()
 	{		
 		while (true)
-		{
+		{			
 			$this->findAndInitializeModule();
 			
 			if ($this->parsedModule)
@@ -68,7 +68,7 @@ class XXX_MPC_Destination
 					$this->findAction();
 					
 					if ($this->parsedAction)
-					{					
+					{
 						$this->findArguments();
 					}
 				}
@@ -85,7 +85,14 @@ class XXX_MPC_Destination
 		{
 			if ($this->error)
 			{
-				XXX_MPC_Router::executeRoute('invalidRoute', false);
+				if (XXX_MPC_Router::$invalidRouteRoute == '')
+				{
+					trigger_error($this->error);
+				}
+				else if (XXX_MPC_Router::$invalidRouteRoute != $this->rawRoute)
+				{				
+					XXX_MPC_Router::executeRoute(XXX_MPC_Router::$invalidRouteRoute, false);
+				}
 				
 				$this->executed = true;
 			}
@@ -96,18 +103,51 @@ class XXX_MPC_Destination
 		}
 	}
 	
+	public function tryRewritingRouteRemainder ()
+	{
+		// Determine the remainder
+		$tempRewrittenRoutePartsRemainder = array_slice($this->rewrittenRouteParts, $this->currentPartIndex);
+		$tempRewrittenRouteRemainder = implode('/', $tempRewrittenRoutePartsRemainder);
+		
+		// Pop the origin remainder
+		$this->rewrittenRouteParts = array_slice($this->rewrittenRouteParts, 0, $this->currentPartIndex);
+		$this->rewrittenRoute = implode('/', $this->rewrittenRouteParts);
+		
+		// Do the rewriting
+		$tempRewrittenRouteRemainder = XXX_MPC_Router::processRouteRewrites($tempRewrittenRouteRemainder, $this->canonicalModulePathParts);
+		$tempRewrittenRoutePartsRemainder = explode('/', $tempRewrittenRouteRemainder);
+		
+		// Append the new remainder
+		if ($this->rewrittenRoute == '')
+		{
+			$this->rewrittenRoute = $tempRewrittenRouteRemainder;
+		}
+		else
+		{
+			$this->rewrittenRoute .= '/' . $tempRewrittenRouteRemainder;
+		}
+		
+		foreach ($tempRewrittenRoutePartsRemainder as $tempRewrittenRoutePartRemainder)
+		{
+			$this->rewrittenRouteParts[] = $tempRewrittenRoutePartRemainder;
+		}
+	}
+	
 	public function findAndInitializeModule ()
 	{
 		if (!$this->parsedModule)
 		{
+			$this->tryRewritingRouteRemainder();
+			
 			$currentPart = $this->rewrittenRouteParts[$this->currentPartIndex];
+			
 			$traversedModule = false;
 			
 			$alternatives = array();
 			// As is
 			$alternatives[] = $currentPart;
 			// Aliassed
-			$alternatives[] = XXX_MPC_Router::processModuleAliasses($currentPart);
+			$alternatives[] = XXX_MPC_Router::processModuleAliasses($currentPart, $this->canonicalModulePathParts);
 			
 			foreach ($alternatives as $alternative)
 			{
@@ -183,13 +223,17 @@ class XXX_MPC_Destination
 					}
 				}
 			}
+			
+			$this->canonicalRoute = XXX_Array::joinValuesToString($this->canonicalRouteParts, '/');
 		}
 	}
 	
 	public function findAndLoadController ()
 	{
 		if (!$this->parsedController)
-		{		
+		{
+			$this->tryRewritingRouteRemainder();
+			
 			$currentPart = $this->rewrittenRouteParts[$this->currentPartIndex];
 			
 			// TODO if the part or aliassed part is a subDirectory? Traverse it untill it's not, is this benificial? Only for presenters probably, but then it's ok.
@@ -198,7 +242,7 @@ class XXX_MPC_Destination
 			// As is
 			$alternatives[] = $currentPart;
 			// Aliassed
-			$alternatives[] = XXX_MPC_Router::processControllerAliasses($currentPart);
+			$alternatives[] = XXX_MPC_Router::processControllerAliasses($currentPart, $this->canonicalModulePathParts);
 			
 			$tempPrefix =  XXX::$deploymentInformation['project'] . '_Controller_';
 			if (!XXX_String::beginsWith($currentPart, $tempPrefix))
@@ -261,6 +305,8 @@ class XXX_MPC_Destination
 					break;
 				}
 			}
+						
+			$this->canonicalRoute = XXX_Array::joinValuesToString($this->canonicalRouteParts, '/');
 			
 			if (!$this->parsedController)
 			{
@@ -273,13 +319,15 @@ class XXX_MPC_Destination
 	{
 		if (!$this->parsedAction)
 		{
+			$this->tryRewritingRouteRemainder();
+			
 			$currentPart = $this->rewrittenRouteParts[$this->currentPartIndex];
 			
 			$alternatives = array();
 			// As is
 			$alternatives[] = $currentPart;
 			// Aliassed
-			$alternatives[] = XXX_MPC_Router::processActionAliasses($currentPart);
+			$alternatives[] = XXX_MPC_Router::processActionAliasses($currentPart, $this->canonicalModulePathParts);
 			if (XXX_MPC_Router::$defaultAction != '')
 			{
 				// Default
@@ -300,6 +348,8 @@ class XXX_MPC_Destination
 					break;
 				}
 			}
+						
+			$this->canonicalRoute = XXX_Array::joinValuesToString($this->canonicalRouteParts, '/');
 			
 			if (!$this->parsedAction)
 			{
@@ -342,11 +392,11 @@ class XXX_MPC_Destination
 	
 	public function composePaths ()
 	{
-		$this->pathPrefixes['globalModulePathPrefix'] = $this->canonicalModulePathPrefix;
-		$this->pathPrefixes['globalControllersPathPrefix'] = $this->canonicalModulePathPrefix . XXX_MPC_Router::$directoryNames['controllers'] . XXX_OperatingSystem::$directorySeparator;
-		$this->pathPrefixes['globalModelsPathPrefix'] = $this->canonicalModulePathPrefix . XXX_MPC_Router::$directoryNames['models'] . XXX_OperatingSystem::$directorySeparator;
-		$this->pathPrefixes['globalPresentersPathPrefix'] = $this->canonicalModulePathPrefix . XXX_MPC_Router::$directoryNames['presenters'] . XXX_OperatingSystem::$directorySeparator;
-		$this->pathPrefixes['globalModulesPathPrefix'] = $this->canonicalModulePathPrefix . XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator;
+		$this->pathPrefixes['globalModulePathPrefix'] = XXX_Path_Local::$deploymentSourcePathPrefix;
+		$this->pathPrefixes['globalControllersPathPrefix'] = XXX_Path_Local::$deploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['controllers'] . XXX_OperatingSystem::$directorySeparator;
+		$this->pathPrefixes['globalModelsPathPrefix'] = XXX_Path_Local::$deploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['models'] . XXX_OperatingSystem::$directorySeparator;
+		$this->pathPrefixes['globalPresentersPathPrefix'] = XXX_Path_Local::$deploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['presenters'] . XXX_OperatingSystem::$directorySeparator;
+		$this->pathPrefixes['globalModulesPathPrefix'] = XXX_Path_Local::$deploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator;
 		//$this->pathPrefixes['globalPresentersPublicWebURIPrefix'] = $this->canonicalModulePathPrefix . XXX_Paths::composePublicWebURI('httpServer_static_implementation', XXX_MPC_Router::$directoryNames['presenters'] . '/', 0, false) . '/';
 		
 		$this->pathPrefixes['modulePathPrefix'] = $this->canonicalModulePathPrefix;

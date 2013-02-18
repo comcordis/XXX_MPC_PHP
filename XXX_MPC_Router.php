@@ -32,11 +32,9 @@ abstract class XXX_MPC_Router
 	);
 	
 	public static $requireModuleInitializer = false;
-	public static $defaultModuleInitializer = 'initialize.php';
-	
-	public static $defaultEntryPointRoute = '';
-		public static $defaultController = '';
-		public static $defaultAction = 'index';
+	public static $defaultModuleInitializer = 'initialize.php';	
+	public static $defaultController = '';
+	public static $defaultAction = 'index';
 	
 	public static $invalidRouteRoute = '';
 	
@@ -56,7 +54,7 @@ abstract class XXX_MPC_Router
 		{
 			if ($route == '')
 			{
-				$route = self::getEntryPointRoute();
+				$route = XXX_MPC_EntryPointRoute::getEntryPointRoute();
 			}
 			
 			self::executeRoute($route, false);
@@ -195,84 +193,96 @@ abstract class XXX_MPC_Router
 			return $result;
 		}
 		
-	
-	public static function setDefaultRoute ($defaultEntryPointRoute = '', $addEntryPointPrefix = true)
-	{
-		$defaultEntryPointRoute = self::cleanRoute($defaultEntryPointRoute);
-		
-		if ($addEntryPointPrefix)
-		{
-			$defaultEntryPointRoute = self::addEntryPointPrefixToRoute($defaultEntryPointRoute);
-		}
-				
-		self::$defaultEntryPointRoute = $defaultEntryPointRoute;
-	}
-	
-	public static function setInvalidRouteRoute ($invalidRouteRoute = '', $addEntryPointPrefix = true)
+	public static function setInvalidRouteRoute ($invalidRouteRoute = '', $addExecutionEnvironmentPrefix = true)
 	{
 		$invalidRouteRoute = self::cleanRoute($invalidRouteRoute);
 		
-		if ($addEntryPointPrefix)
+		if ($addExecutionEnvironmentPrefix)
 		{
-			$defaultEntryPointRoute = self::addEntryPointPrefixToRoute($defaultEntryPointRoute);
+			$defaultEntryPointRoute = XXX_MPC_EntryPointRoute::addExecutionEnvironmentPrefixToRoute($defaultEntryPointRoute);
 		}
 		
 		self::$invalidRouteRoute = $invalidRouteRoute;
 	}
 	
-	public static function addRouteRewrite ($original = '', $rewrite = '', $type = 'stringBegin', $last = true, $addEntryPointPrefix = true)
+	public static function addRouteRewrite ($original = '', $rewrite = '', $type = 'stringBegin', $last = true, $parentCanonicalModulePathParts = array())
 	{
 		$type = XXX_Default::toOption($type, array('stringBegin', 'string', 'pattern'), 'stringBegin');
 		
 		$rewrite = self::cleanRoute($rewrite);
-		
-		if ($addEntryPointPrefix)
-		{
-			$original = self::addEntryPointPrefixToRoute($original);
-			$rewrite = self::addEntryPointPrefixToRoute($rewrite);
-		}
-		
+				
 		self::$routeRewrites[] = array
 		(
+			'parentCanonicalModulePathParts' => $parentCanonicalModulePathParts,
 			'type' => $type,
 			'original' => $original,
 			'rewrite' => $rewrite,
 			'last' => $last
-		);	
+		);
 	}
 	
 	
-	public static function addModuleAlias ($original = '', $alias = '', $last = true)
+	public static function addModuleAlias ($original = '', $alias = '', $last = true, $parentCanonicalModulePathParts = array())
 	{
 		self::$moduleAliasses[] = array
 		(
+			'parentCanonicalModulePathParts' => $parentCanonicalModulePathParts,
 			'original' => $original,
 			'alias' => $alias,
 			'last' => $last
-		);	
+		);
 	}
 	
-	public static function addControllerAlias ($original = '', $alias = '', $last = true)
+	public static function addControllerAlias ($original = '', $alias = '', $last = true, $parentCanonicalModulePathParts = array())
 	{
 		self::$controllerAliasses[] = array
 		(
+			'parentCanonicalModulePathParts' => $parentCanonicalModulePathParts,
 			'original' => $original,
 			'alias' => $alias,
 			'last' => $last
-		);	
+		);
 	}
 	
-	public static function addActionAlias ($original = '', $alias = '', $last = true)
+	public static function addActionAlias ($original = '', $alias = '', $last = true, $parentCanonicalModulePathParts = array())
 	{
 		self::$actionAliasses[] = array
 		(
+			'parentCanonicalModulePathParts' => $parentCanonicalModulePathParts,
 			'original' => $original,
 			'alias' => $alias,
 			'last' => $last
-		);	
+		);
 	}
 	
-	public static function processModuleAliasses ($module = '')
+	// false for every module on any level
+	// array() for project root
+	// array('httpServer', 'www') for httpServer/www
+	public static function comparseParentCanonicalModulePathParts ($original = array(), $comparison = array())
+	{
+		$result = false;
+		
+		if (XXX_Type::isArray($original))
+		{
+			if (XXX_Type::isArray($comparison))
+			{
+				$differences = array_diff($original, $comparison);
+				
+				if (XXX_Array::getFirstLevelItemTotal($differences) == 0 && XXX_Array::getFirstLevelItemTotal($original) == XXX_Array::getFirstLevelItemTotal($comparison))
+				{
+					$result = true;
+				}
+			}
+		}
+		else
+		{
+			$result = true;
+		}
+		
+		return $result;
+	}
+	
+	public static function processModuleAliasses ($module = '', $parentCanonicalModulePathParts = array())
 	{
 		if ($module != '')
 		{
@@ -280,16 +290,19 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				if ($module == $moduleAlias['alias'])
+				if (self::comparseParentCanonicalModulePathParts($moduleAlias['parentCanonicalModulePathParts'], $parentCanonicalModulePathParts))
 				{
-					$module = $moduleAlias['original'];
-				}
-				
-				if ($matched)
-				{
-					if ($moduleAlias['last'])
+					if ($module == $moduleAlias['alias'])
 					{
-						break;
+						$module = $moduleAlias['original'];
+					}
+					
+					if ($matched)
+					{
+						if ($moduleAlias['last'])
+						{
+							break;
+						}
 					}
 				}
 			}
@@ -298,7 +311,7 @@ abstract class XXX_MPC_Router
 		return $module;
 	}
 	
-	public static function processControllerAliasses ($controller = '')
+	public static function processControllerAliasses ($controller = '', $parentCanonicalModulePathParts = array())
 	{
 		if ($controller != '')
 		{
@@ -306,16 +319,19 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				if ($controller == $controllerAlias['alias'])
+				if (self::comparseParentCanonicalModulePathParts($controllerAlias['parentCanonicalModulePathParts'], $parentCanonicalModulePathParts))
 				{
-					$controller = $controllerAlias['original'];
-				}
-				
-				if ($matched)
-				{
-					if ($controllerAlias['last'])
+					if ($controller == $controllerAlias['alias'])
 					{
-						break;
+						$controller = $controllerAlias['original'];
+					}
+					
+					if ($matched)
+					{
+						if ($controllerAlias['last'])
+						{
+							break;
+						}
 					}
 				}
 			}
@@ -324,7 +340,7 @@ abstract class XXX_MPC_Router
 		return $controller;
 	}
 	
-	public static function processActionAliasses ($action = '')
+	public static function processActionAliasses ($action = '', $parentCanonicalModulePathParts = array())
 	{
 		if ($action != '')
 		{
@@ -332,16 +348,19 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				if ($action == $actionAlias['alias'])
+				if (self::comparseParentCanonicalModulePathParts($actionAlias['parentCanonicalModulePathParts'], $parentCanonicalModulePathParts))
 				{
-					$action = $actionAlias['original'];
-				}
-				
-				if ($matched)
-				{
-					if ($actionAlias['last'])
+					if ($action == $actionAlias['alias'])
 					{
-						break;
+						$action = $actionAlias['original'];
+					}
+					
+					if ($matched)
+					{
+						if ($actionAlias['last'])
+						{
+							break;
+						}
 					}
 				}
 			}
@@ -351,7 +370,7 @@ abstract class XXX_MPC_Router
 	}
 	
 	
-	public static function processRouteRewrites ($route = '')
+	public static function processRouteRewrites ($route = '', $parentCanonicalModulePathParts = array())
 	{
 		if ($route != '')
 		{
@@ -359,128 +378,85 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				switch ($routeRewrite['type'])
+				if (self::comparseParentCanonicalModulePathParts($actionAlias['parentCanonicalModulePathParts'], $parentCanonicalModulePathParts))
 				{
-					// Only once
-					case 'stringBegin':						
-						if (XXX_String::beginsWith($route, $routeRewrite['original']))
-						{
-							$originalPartCharacterLength = XXX_String::getCharacterLength($routeRewrite['original']);
-							
-							$route = $routeRewrite['rewrite'] . XXX_String::getPart($route, $originalPartCharacterLength);
-							
-							$matched = true;
-						}
-						break;
-					// Can multiple times in multiple places in the path
-					case 'string':
-						if (XXX_String::findFirstPosition($route, $routeRewrite['rewrite']) !== false)
-						{
-							trigger_error('Route rewrite "' . $routeRewrite['rewrite'] . '" contains same part as original "' . $routeRewrite['original'] . '", and causes an infinite loop.', 'development');
-						}
-						else
-						{
-							while (true)
+					switch ($routeRewrite['type'])
+					{
+						// Only once
+						case 'stringBegin':						
+							if (XXX_String::beginsWith($route, $routeRewrite['original']))
 							{
-								$firstPosition = XXX_String::findFirstPosition($route, $routeRewrite['original']);
+								$originalPartCharacterLength = XXX_String::getCharacterLength($routeRewrite['original']);
 								
-								if ($firstPosition !== false)
+								$route = $routeRewrite['rewrite'] . XXX_String::getPart($route, $originalPartCharacterLength);
+								
+								$matched = true;
+							}
+							break;
+						// Can multiple times in multiple places in the path
+						case 'string':
+							if (XXX_String::findFirstPosition($route, $routeRewrite['rewrite']) !== false)
+							{
+								trigger_error('Route rewrite "' . $routeRewrite['rewrite'] . '" contains same part as original "' . $routeRewrite['original'] . '", and causes an infinite loop.', 'development');
+							}
+							else
+							{
+								while (true)
 								{
-									$originalPartCharacterLength = XXX_String::getCharacterLength($routeRewrite['original']);
+									$firstPosition = XXX_String::findFirstPosition($route, $routeRewrite['original']);
 									
-									$originalPrefix = '';
-									if ($firstPosition > 0)
+									if ($firstPosition !== false)
 									{
-										$originalPrefix = XXX_String::getPart($route, 0, $firstPosition);
+										$originalPartCharacterLength = XXX_String::getCharacterLength($routeRewrite['original']);
+										
+										$originalPrefix = '';
+										if ($firstPosition > 0)
+										{
+											$originalPrefix = XXX_String::getPart($route, 0, $firstPosition);
+										}
+										$originalSuffix = XXX_String::getPart($route, $firstPosition + $originalPartCharacterLength);
+										
+										$route = $originalPrefix . $routeRewrite['rewrite'] . $originalSuffix;							
+										
+										$matched = true;
 									}
-									$originalSuffix = XXX_String::getPart($route, $firstPosition + $originalPartCharacterLength);
-									
-									$route = $originalPrefix . $routeRewrite['rewrite'] . $originalSuffix;							
-									
-									$matched = true;
-								}
-								else
-								{
-									break;
+									else
+									{
+										break;
+									}
 								}
 							}
-						}
-						break;
-					case 'pattern':
-						$originalRoute = $route;
-						
-						$route = XXX_String_Pattern::replace($route, $routeRewrite['original']['pattern'], $routeRewrite['original']['patternModifiers'], $routeRewrite['rewrite']);
-						
-						if (XXX_Type::isNull($route))
-						{
-							$route = $originalRoute;
-						}
-						
-						if ($originalRoute != $route)
-						{
-							$matched = true;
-						}
-						break;
-				}
-				
-				if ($matched)
-				{
-					if ($routeRewrite['last'])
+							break;
+						case 'pattern':
+							$originalRoute = $route;
+							
+							$route = XXX_String_Pattern::replace($route, $routeRewrite['original']['pattern'], $routeRewrite['original']['patternModifiers'], $routeRewrite['rewrite']);
+							
+							if (XXX_Type::isNull($route))
+							{
+								$route = $originalRoute;
+							}
+							
+							if ($originalRoute != $route)
+							{
+								$matched = true;
+							}
+							break;
+					}
+					
+					if ($matched)
 					{
-						break;
+						if ($routeRewrite['last'])
+						{
+							break;
+						}
 					}
 				}
 			}
-			
-			
 		}
 		
 		return $route;
 	}
-	
-	public static function getEntryPointRoute ()
-	{
-		$route = '';
-		
-		if ($route == '')
-		{
-			$route = self::parseRawEntryPointRoute();
-		}
-		
-		if ($route == '')
-		{
-			if (self::$defaultEntryPointRoute != '')
-			{
-				$route = self::$defaultEntryPointRoute;
-				
-				$route = self::cleanRoute($route);
-			}
-		}
-		
-		return $route;
-	}
-	
-		public static function parseRawEntryPointRoute ()
-		{		
-			$route = '';			
-			
-			$route = XXX_MPC_Route::$route;
-			
-			$route = self::cleanRoute($route);
-			
-			// Can't be just the entryPoint file
-			if ($route == basename($_SERVER['SCRIPT_FILENAME']))
-			{
-				$route = '';
-			}
-			
-			if ($route != '')
-			{
-				$route = self::addEntryPointPrefixToRoute($route);
-			}
-					
-			return $route;
-		}
 		
 		public static function cleanRoute ($route)
 		{
@@ -517,63 +493,6 @@ abstract class XXX_MPC_Router
 			
 			return $route;
 		}
-	
-	public static function addEntryPointPrefixToRoute ($route = '')
-	{
-		$entryPointPrefix = self::getEntryPointPrefix();
-		
-		if ($entryPointPrefix)
-		{
-			$route = $entryPointPrefix . '/' . $route;
-		}
-		
-		return $route;
-	}
-	
-	public static function stripEntryPointPrefixFromRoute ($route = '')
-	{
-		$entryPointPrefix = self::getEntryPointPrefix() . '/';
-		$entryPointPrefixCharacterLength = XXX_String::getCharacterLength($entryPointPrefix);
-		
-		if (XXX_String::beginsWith($route, $entryPointPrefix))
-		{
-			$route = XXX_String::getPart($route, $entryPointPrefixCharacterLength);
-		}
-		
-		return $route;
-	}
-	
-	public static function getEntryPointPrefix ()
-	{
-		$entryPointPrefix = '';
-		
-		$entryPointPrefix .= XXX_PHP::$executionEnvironment;
-		$entryPointPrefix .= '/';
-		
-		switch (XXX_PHP::$executionEnvironment)
-		{
-			case 'httpServer':
-				$subExecutionEnvironment = XXX_HTTPServer_Client::$parsedHost['subExecutionEnvironment'];
-				
-				if ($subExecutionEnvironment == '')
-				{
-					$subExecutionEnvironment = 'www';
-				}
-				break;
-			case 'commandLine':
-				$subExecutionEnvironment = XXX_CommandLine_Input::getArgumentVariable('subExecutionEnvironment');
-				
-				if ($subExecutionEnvironment == '')
-				{
-					$subExecutionEnvironment = 'manual';
-				}
-				break;
-		}
-		
-		$entryPointPrefix .= $subExecutionEnvironment;
-		
-		return $entryPointPrefix;
-	}	
 }
 
 ?>
