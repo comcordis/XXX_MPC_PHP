@@ -19,6 +19,8 @@ i18n should only be loaded when needed
 
 Rewrite router to cut off part, and let submodule handle the rest
 
+TODO: Fix that a rewrite of emailAddressValidation to emailAddressValidation/emailAddressValidation is possible
+
 */
 
 abstract class XXX_MPC_Router
@@ -56,7 +58,7 @@ abstract class XXX_MPC_Router
 			{
 				$route = XXX_MPC_EntryPointRoute::getEntryPointRoute();
 			}
-			
+						
 			self::executeRoute($route, false);
 		}
 		else
@@ -378,7 +380,7 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				if (self::comparseParentCanonicalRouteParts($actionAlias['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
+				if (self::comparseParentCanonicalRouteParts($routeRewrite['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
 				{
 					switch ($routeRewrite['type'])
 					{

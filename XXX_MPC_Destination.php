@@ -108,7 +108,7 @@ class XXX_MPC_Destination
 		}
 	}
 	
-	public function tryRewritingRouteRemainder ()
+	public function tryRewritingRouteRemainder ($where = '')
 	{
 		// Determine the remainder
 		$tempRewrittenRoutePartsRemainder = array_slice($this->rewrittenRouteParts, $this->currentPartIndex);
@@ -119,7 +119,7 @@ class XXX_MPC_Destination
 		$this->rewrittenRoute = implode('/', $this->rewrittenRouteParts);
 		
 		// Do the rewriting
-		$tempRewrittenRouteRemainder = XXX_MPC_Router::processRouteRewrites($tempRewrittenRouteRemainder, $this->canonicalModulePathParts);
+		$tempRewrittenRouteRemainder = XXX_MPC_Router::processRouteRewrites($tempRewrittenRouteRemainder, $this->canonicalRouteParts);
 		$tempRewrittenRoutePartsRemainder = explode('/', $tempRewrittenRouteRemainder);
 		
 		// Append the new remainder
@@ -145,7 +145,7 @@ class XXX_MPC_Destination
 	{
 		if (!$this->parsedModule)
 		{
-			$this->tryRewritingRouteRemainder();
+			$this->tryRewritingRouteRemainder('module');
 			
 			$currentPart = $this->rewrittenRouteParts[$this->currentPartIndex];
 			
@@ -240,7 +240,7 @@ class XXX_MPC_Destination
 	{
 		if (!$this->parsedController)
 		{
-			$this->tryRewritingRouteRemainder();
+			$this->tryRewritingRouteRemainder('controller');
 			
 			$currentPart = $this->rewrittenRouteParts[$this->currentPartIndex];
 			
@@ -332,7 +332,7 @@ class XXX_MPC_Destination
 	{
 		if (!$this->parsedAction)
 		{
-			$this->tryRewritingRouteRemainder();
+			$this->tryRewritingRouteRemainder('action');
 			
 			$currentPart = $this->rewrittenRouteParts[$this->currentPartIndex];
 			
