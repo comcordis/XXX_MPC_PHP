@@ -4,17 +4,17 @@ class XXX_MPC_PresenterContext
 {
 	const CLASS_NAME = 'XXX_MPC_PresenterContext';
 	
-	protected $settings = array
+	public $settings = array
 	(
 		'automaticallyResetSettings' => false,
 		'automaticallyResetVariables' => false
 	);
 	
-	protected $destinations = array();
+	public $destinations = array();
 		
-	protected $paths = array();
-	protected $variables = array();
-	protected $elements = array();
+	public $paths = array();
+	public $variables = array();
+	public $elements = array();
 	
 	public function __construct ()
 	{
@@ -96,7 +96,7 @@ class XXX_MPC_PresenterContext
 			return $result;
 		}
 		
-		public function getPublicWebURIPrefix ($key = '', $destinationType = 'current')
+		public function getURIPathPrefix ($key = '', $destinationType = 'current')
 		{
 			$result = false;
 			
@@ -104,7 +104,7 @@ class XXX_MPC_PresenterContext
 			
 			if ($destination !== false)
 			{
-				$result = $destination->getPublicWebURIPrefix($key);
+				$result = $destination->getURIPathPrefix($key);
 			}
 			
 			return $result;

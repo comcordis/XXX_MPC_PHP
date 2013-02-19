@@ -207,11 +207,30 @@ abstract class XXX_MPC_Router
 		self::$invalidRouteRoute = $invalidRouteRoute;
 	}
 	
-	public static function addRouteRewrite ($original = '', $rewrite = '', $type = 'stringBegin', $last = true, $parentCanonicalRouteParts = array())
+	public static function getCurrentParentCanonicalRouteParts ()
+	{
+		$result = false;
+			
+		$currentDestination = self::getCurrentDestination();
+		
+		if ($currentDestination)
+		{
+			$result = $currentDestination->canonicalRouteParts;
+		}
+		
+		return $result;
+	}
+	
+	public static function addRouteRewrite ($original = '', $rewrite = '', $type = 'stringBegin', $last = true, $parentCanonicalRouteParts = false)
 	{
 		$type = XXX_Default::toOption($type, array('stringBegin', 'string', 'pattern'), 'stringBegin');
 		
 		$rewrite = self::cleanRoute($rewrite);
+		
+		if ($parentCanonicalRouteParts == false)
+		{
+			$parentCanonicalRouteParts = self::getCurrentParentCanonicalRouteParts();
+		}
 				
 		self::$routeRewrites[] = array
 		(
@@ -224,8 +243,13 @@ abstract class XXX_MPC_Router
 	}
 	
 	
-	public static function addModuleAlias ($original = '', $alias = '', $last = true, $parentCanonicalRouteParts = array())
+	public static function addModuleAlias ($alias = '', $original = '', $last = true, $parentCanonicalRouteParts = false)
 	{
+		if ($parentCanonicalRouteParts == false)
+		{
+			$parentCanonicalRouteParts = self::getCurrentParentCanonicalRouteParts();
+		}
+			
 		self::$moduleAliasses[] = array
 		(
 			'parentCanonicalRouteParts' => $parentCanonicalRouteParts,
@@ -235,8 +259,13 @@ abstract class XXX_MPC_Router
 		);
 	}
 	
-	public static function addControllerAlias ($original = '', $alias = '', $last = true, $parentCanonicalRouteParts = array())
+	public static function addControllerAlias ($alias = '', $original = '', $last = true, $parentCanonicalRouteParts = false)
 	{
+		if ($parentCanonicalRouteParts == false)
+		{
+			$parentCanonicalRouteParts = self::getCurrentParentCanonicalRouteParts();
+		}
+			
 		self::$controllerAliasses[] = array
 		(
 			'parentCanonicalRouteParts' => $parentCanonicalRouteParts,
@@ -246,8 +275,13 @@ abstract class XXX_MPC_Router
 		);
 	}
 	
-	public static function addActionAlias ($original = '', $alias = '', $last = true, $parentCanonicalRouteParts = array())
+	public static function addActionAlias ($alias = '', $original = '', $last = true, $parentCanonicalRouteParts = false)
 	{
+		if ($parentCanonicalRouteParts == false)
+		{
+			$parentCanonicalRouteParts = self::getCurrentParentCanonicalRouteParts();
+		}
+			
 		self::$actionAliasses[] = array
 		(
 			'parentCanonicalRouteParts' => $parentCanonicalRouteParts,
@@ -399,7 +433,7 @@ abstract class XXX_MPC_Router
 						case 'string':
 							if (XXX_String::findFirstPosition($route, $routeRewrite['rewrite']) !== false)
 							{
-								trigger_error('Route rewrite "' . $routeRewrite['rewrite'] . '" contains same part as original "' . $routeRewrite['original'] . '", and causes an infinite loop.', 'development');
+								trigger_error('Route rewrite "' . $routeRewrite['rewrite'] . '" contains same part as original "' . $routeRewrite['original'] . '", and causes an infinite loop.');
 							}
 							else
 							{

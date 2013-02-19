@@ -7,11 +7,6 @@ class XXX_MPC_Destination
 	public $rawRoute = '';
 	public $rawRouteParts = '';
 	
-	// TODO
-	public $rawModuleRoutePrefix = '';
-	public $rawControllerRoutePrefix = '';
-	public $rawActionRoutePrefix = '';
-	
 	public $rewrittenRoute = '';
 	public $rewrittenRouteParts = array();
 	
@@ -399,19 +394,6 @@ class XXX_MPC_Destination
 			
 			$this->canonicalRoute = XXX_Array::joinValuesToString($this->canonicalRouteParts, '/');
 			
-			
-			// rawActionRoutePrefix
-			$lastNonArgumentPartIndex = XXX_Array::getFirstLevelItemTotal($this->rawRouteParts) - XXX_Array::getFirstLevelItemTotal($this->arguments);
-			
-			$this->rawActionRoutePrefix = implode('/', array_slice($this->rawRouteParts, 0, $lastNonArgumentPartIndex)) . '/';
-			
-			// rawControllerRoutePrefix
-			$this->rawControllerRoutePrefix = implode('/', array_slice($this->rawRouteParts, 0, $lastNonArgumentPartIndex - 1)) . '/';
-			
-			// rawModuleRoutePrefix
-			$this->rawModuleRoutePrefix = implode('/', array_slice($this->rawRouteParts, 0, $lastNonArgumentPartIndex - 2)) . '/';
-			
-			
 			$this->composePaths();
 		}
 	}
@@ -423,17 +405,17 @@ class XXX_MPC_Destination
 		$this->pathPrefixes['globalModelsPathPrefix'] = XXX_Path_Local::$deploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['models'] . XXX_OperatingSystem::$directorySeparator;
 		$this->pathPrefixes['globalPresentersPathPrefix'] = XXX_Path_Local::$deploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['presenters'] . XXX_OperatingSystem::$directorySeparator;
 		$this->pathPrefixes['globalModulesPathPrefix'] = XXX_Path_Local::$deploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator;
-		//$this->pathPrefixes['globalPresentersPublicWebURIPrefix'] = $this->canonicalModulePathPrefix . XXX_Paths::composePublicWebURI('httpServer_static_implementation', XXX_MPC_Router::$directoryNames['presenters'] . '/', 0, false) . '/';
 		
 		$this->pathPrefixes['modulePathPrefix'] = $this->canonicalModulePathPrefix;
 		$this->pathPrefixes['controllersPathPrefix'] = $this->canonicalModulePathPrefix . XXX_MPC_Router::$directoryNames['controllers'] . XXX_OperatingSystem::$directorySeparator;
 		$this->pathPrefixes['modelsPathPrefix'] = $this->canonicalModulePathPrefix . XXX_MPC_Router::$directoryNames['models'] . XXX_OperatingSystem::$directorySeparator;		
 		$this->pathPrefixes['presentersPathPrefix'] = $this->canonicalModulePathPrefix . XXX_MPC_Router::$directoryNames['presenters'] . XXX_OperatingSystem::$directorySeparator;
 		$this->pathPrefixes['modulesPathPrefix'] = $this->canonicalModulePathPrefix . XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator;
-		//$this->pathPrefixes['presentersPublicWebURIPrefix'] = XXX_Paths::composePublicWebURI('httpServer_static_implementation', $this->pathPrefixes['presentersPathPrefix'] . '/', 0, false) . '/';
 		
 		
-		
+		$this->pathPrefixes['globalPresentersURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . XXX::$deploymentInformation['project'] . '/' . XXX_MPC_Router::$directoryNames['presenters'] . '/';
+		$this->pathPrefixes['presentersURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . XXX::$deploymentInformation['project'] . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/' . XXX_MPC_Router::$directoryNames['presenters'] . '/';
+				
 		// Strip the arguments off of the raw route parts, remaining the raw route parts up to the action
 			
 		$argumentsTotal = XXX_Array::getFirstLevelItemTotal($this->arguments);
@@ -461,10 +443,6 @@ class XXX_MPC_Destination
 					$controllerPrefix = XXX_Array::joinValuesToString($tempRawRouteParts, '/');
 				}
 			}
-			
-			/*
-			$this->pathPrefixes['navigationActionPublicWebURIPrefix'] = XXX_Paths::composePublicWebURI('httpServer_' . XXX_Domain::getEntryPoint(), $actionPrefix . '/', 0, false) . ($actionprefix != '' ? '/' : '');
-			$this->pathPrefixes['navigationControllerPublicWebURIPrefix'] = XXX_Paths::composePublicWebURI('httpServer_' . XXX_Domain::getEntryPoint(), $controllerPrefix . '/', 0, false) . ($controllerPrefix != '' ? '/' : '');*/
 		}
 	}
 	
@@ -554,9 +532,9 @@ class XXX_MPC_Destination
 		return $this->pathPrefixes[$key . 'PathPrefix'];
 	}
 	
-	public function getPublicWebURIPrefix ($key = '')
+	public function getURIPathPrefix ($key = '')
 	{
-		return $this->pathPrefixes[$key . 'PublicWebURIPrefix'];
+		return $this->pathPrefixes[$key . 'URIPathPrefix'];
 	}
 }
 
