@@ -113,6 +113,9 @@ class XXX_MPC_Destination
 		$this->rewrittenRouteParts = array_slice($this->rewrittenRouteParts, 0, $this->currentPartIndex);
 		$this->rewrittenRoute = implode('/', $this->rewrittenRouteParts);
 		
+		// Do the callbacks 
+		$tempRewrittenRouteRemainder = XXX_MPC_Router::processRouteCallbacks($tempRewrittenRouteRemainder, $this->canonicalRouteParts);		
+		
 		// Do the rewriting
 		$tempRewrittenRouteRemainder = XXX_MPC_Router::processRouteRewrites($tempRewrittenRouteRemainder, $this->canonicalRouteParts);
 		$tempRewrittenRoutePartsRemainder = explode('/', $tempRewrittenRouteRemainder);

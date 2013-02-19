@@ -40,6 +40,7 @@ abstract class XXX_MPC_Router
 	
 	public static $invalidRouteRoute = '';
 	
+	public static $routeCallbacks = array();
 	public static $routeRewrites = array();
 	
 	public static $moduleAliasses = array();
@@ -221,11 +222,26 @@ abstract class XXX_MPC_Router
 		return $result;
 	}
 	
-	public static function addRouteRewrite ($original = '', $rewrite = '', $type = 'stringBegin', $last = true, $parentCanonicalRouteParts = false)
+	public static function addRouteCallback ($callback = '', $last = true, $parentCanonicalRouteParts = false)
+	{
+		if ($parentCanonicalRouteParts == false)
+		{
+			$parentCanonicalRouteParts = self::getCurrentParentCanonicalRouteParts();
+		}
+				
+		self::$routeCallbacks[] = array
+		(
+			'parentCanonicalRouteParts' => $parentCanonicalRouteParts,
+			'callback' => $callback,
+			'last' => $last
+		);
+	}
+	
+	public static function addRouteRewrite ($rewrite = '', $canonical = '', $type = 'stringBegin', $last = true, $parentCanonicalRouteParts = false)
 	{
 		$type = XXX_Default::toOption($type, array('stringBegin', 'string', 'pattern'), 'stringBegin');
 		
-		$rewrite = self::cleanRoute($rewrite);
+		$canonical = self::cleanRoute($canonical);
 		
 		if ($parentCanonicalRouteParts == false)
 		{
@@ -236,14 +252,14 @@ abstract class XXX_MPC_Router
 		(
 			'parentCanonicalRouteParts' => $parentCanonicalRouteParts,
 			'type' => $type,
-			'original' => $original,
 			'rewrite' => $rewrite,
+			'canonical' => $canonical,
 			'last' => $last
 		);
 	}
 	
 	
-	public static function addModuleAlias ($alias = '', $original = '', $last = true, $parentCanonicalRouteParts = false)
+	public static function addModuleAlias ($alias = '', $canonical = '', $last = true, $parentCanonicalRouteParts = false)
 	{
 		if ($parentCanonicalRouteParts == false)
 		{
@@ -253,13 +269,13 @@ abstract class XXX_MPC_Router
 		self::$moduleAliasses[] = array
 		(
 			'parentCanonicalRouteParts' => $parentCanonicalRouteParts,
-			'original' => $original,
+			'canonical' => $canonical,
 			'alias' => $alias,
 			'last' => $last
 		);
 	}
 	
-	public static function addControllerAlias ($alias = '', $original = '', $last = true, $parentCanonicalRouteParts = false)
+	public static function addControllerAlias ($alias = '', $canonical = '', $last = true, $parentCanonicalRouteParts = false)
 	{
 		if ($parentCanonicalRouteParts == false)
 		{
@@ -269,13 +285,13 @@ abstract class XXX_MPC_Router
 		self::$controllerAliasses[] = array
 		(
 			'parentCanonicalRouteParts' => $parentCanonicalRouteParts,
-			'original' => $original,
+			'canonical' => $canonical,
 			'alias' => $alias,
 			'last' => $last
 		);
 	}
 	
-	public static function addActionAlias ($alias = '', $original = '', $last = true, $parentCanonicalRouteParts = false)
+	public static function addActionAlias ($alias = '', $canonical = '', $last = true, $parentCanonicalRouteParts = false)
 	{
 		if ($parentCanonicalRouteParts == false)
 		{
@@ -285,7 +301,7 @@ abstract class XXX_MPC_Router
 		self::$actionAliasses[] = array
 		(
 			'parentCanonicalRouteParts' => $parentCanonicalRouteParts,
-			'original' => $original,
+			'canonical' => $canonical,
 			'alias' => $alias,
 			'last' => $last
 		);
@@ -330,7 +346,7 @@ abstract class XXX_MPC_Router
 				{
 					if ($module == $moduleAlias['alias'])
 					{
-						$module = $moduleAlias['original'];
+						$module = $moduleAlias['canonical'];
 					}
 					
 					if ($matched)
@@ -359,7 +375,7 @@ abstract class XXX_MPC_Router
 				{
 					if ($controller == $controllerAlias['alias'])
 					{
-						$controller = $controllerAlias['original'];
+						$controller = $controllerAlias['canonical'];
 					}
 					
 					if ($matched)
@@ -388,7 +404,7 @@ abstract class XXX_MPC_Router
 				{
 					if ($action == $actionAlias['alias'])
 					{
-						$action = $actionAlias['original'];
+						$action = $actionAlias['canonical'];
 					}
 					
 					if ($matched)
@@ -420,30 +436,30 @@ abstract class XXX_MPC_Router
 					{
 						// Only once
 						case 'stringBegin':						
-							if (XXX_String::beginsWith($route, $routeRewrite['original']))
+							if (XXX_String::beginsWith($route, $routeRewrite['rewrite']))
 							{
-								$originalPartCharacterLength = XXX_String::getCharacterLength($routeRewrite['original']);
+								$originalPartCharacterLength = XXX_String::getCharacterLength($routeRewrite['rewrite']);
 								
-								$route = $routeRewrite['rewrite'] . XXX_String::getPart($route, $originalPartCharacterLength);
+								$route = $routeRewrite['canonical'] . XXX_String::getPart($route, $originalPartCharacterLength);
 								
 								$matched = true;
 							}
 							break;
 						// Can multiple times in multiple places in the path
 						case 'string':
-							if (XXX_String::findFirstPosition($route, $routeRewrite['rewrite']) !== false)
+							if (XXX_String::findFirstPosition($route, $routeRewrite['canonical']) !== false)
 							{
-								trigger_error('Route rewrite "' . $routeRewrite['rewrite'] . '" contains same part as original "' . $routeRewrite['original'] . '", and causes an infinite loop.');
+								trigger_error('Route rewrite for "' . $routeRewrite['canonical'] . '" contains same part as rewrite "' . $routeRewrite['rewrite'] . '", and causes an infinite loop.');
 							}
 							else
 							{
 								while (true)
 								{
-									$firstPosition = XXX_String::findFirstPosition($route, $routeRewrite['original']);
+									$firstPosition = XXX_String::findFirstPosition($route, $routeRewrite['rewrite']);
 									
 									if ($firstPosition !== false)
 									{
-										$originalPartCharacterLength = XXX_String::getCharacterLength($routeRewrite['original']);
+										$originalPartCharacterLength = XXX_String::getCharacterLength($routeRewrite['rewrite']);
 										
 										$originalPrefix = '';
 										if ($firstPosition > 0)
@@ -452,7 +468,7 @@ abstract class XXX_MPC_Router
 										}
 										$originalSuffix = XXX_String::getPart($route, $firstPosition + $originalPartCharacterLength);
 										
-										$route = $originalPrefix . $routeRewrite['rewrite'] . $originalSuffix;							
+										$route = $originalPrefix . $routeRewrite['canonical'] . $originalSuffix;							
 										
 										$matched = true;
 									}
@@ -466,7 +482,7 @@ abstract class XXX_MPC_Router
 						case 'pattern':
 							$originalRoute = $route;
 							
-							$route = XXX_String_Pattern::replace($route, $routeRewrite['original']['pattern'], $routeRewrite['original']['patternModifiers'], $routeRewrite['rewrite']);
+							$route = XXX_String_Pattern::replace($route, $routeRewrite['rewrite']['pattern'], $routeRewrite['rewrite']['patternModifiers'], $routeRewrite['canonical']);
 							
 							if (XXX_Type::isNull($route))
 							{
@@ -483,6 +499,49 @@ abstract class XXX_MPC_Router
 					if ($matched)
 					{
 						if ($routeRewrite['last'])
+						{
+							break;
+						}
+					}
+				}
+			}
+		}
+		
+		return $route;
+	}
+	
+	
+	public static function processRouteCallbacks ($route = '', $parentCanonicalRouteParts = array())
+	{
+		if ($route != '')
+		{
+			foreach (self::$routeCallbacks as $routeCallback)
+			{
+				$matched = false;
+				
+				
+				if (self::comparseParentCanonicalRouteParts($routeCallback['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
+				{
+					$originalRoute = $route;
+					
+					if (is_string($routeCallback['callback']))
+					{
+						$route = call_user_func($routeCallback['callback'], $route);
+					}
+					else
+					{
+						$route = call_user_func_array($routeCallback['callback'], $route);
+					}
+					
+					if ($originalRoute != $route)
+					{
+						$matched = true;
+					}
+					
+					
+					if ($matched)
+					{
+						if ($routeCallback['last'])
 						{
 							break;
 						}
