@@ -14,9 +14,6 @@ Action aliasses should be in the module itself
 		- initializer
 			- configurations
 
-i18n should only be loaded when needed
-
-
 Rewrite router to cut off part, and let submodule handle the rest
 
 TODO: Fix that a rewrite of emailAddressValidation to emailAddressValidation/emailAddressValidation is possible
@@ -35,10 +32,10 @@ abstract class XXX_MPC_Router
 	
 	public static $requireModuleInitializer = false;
 	public static $defaultModuleInitializer = 'initialize.php';	
-	public static $defaultController = 'Main';
+	public static $defaultController = 'Index';
 	public static $defaultAction = 'index';
 	
-	public static $invalidRouteRoute = '';
+	public static $invalidRouteRoute = 'Error/invalidRoute';
 	
 	public static $routeCallbacks = array();
 	public static $routeRewrites = array();
@@ -60,7 +57,7 @@ abstract class XXX_MPC_Router
 				$route = XXX_MPC_EntryPointRoute::getEntryPointRoute();
 			}
 						
-			self::executeRoute($route, false);
+			self::executeRoute(XXX::$deploymentInformation['project'], XXX::$deploymentInformation['deployEnvironment'], $route, false);
 		}
 		else
 		{
@@ -74,9 +71,24 @@ abstract class XXX_MPC_Router
 		}
 	}
 	
-	public static function executeRoute ($route = '', $relative = true, $inheritPresenterContext = false)
+	public static function executeRelativeRoute ($route = '', $offsetDestination = false, $inheritPresenterContext = false)
+	{
+		return self::executeRoute(false, false, $route, ($offsetDestination !== false ? $offsetDestination : true), $inheritPresenterContext);
+	}
+	
+	public static function executeRoute ($project = '', $deployIdentifier = '', $route = '', $relative = true, $inheritPresenterContext = false)
 	{
 		$result = false;
+		
+		if ($project == false || $project == '')
+		{
+			$project = XXX::$deploymentInformation['project'];
+		}
+		
+		if ($deployIdentifier == false || $deployIdentifier == '')
+		{
+			$deployIdentifier = XXX::$deploymentInformation['deployEnvironment'];
+		}
 		
 		if ($route != '')
 		{
@@ -93,6 +105,10 @@ abstract class XXX_MPC_Router
 								
 				if ($tempDestination)
 				{
+					// Only relative within same project and deployIdentifier
+					$project = $tempDestination->project;
+					$deployIdentifier = $tempDestination->deployIdentifier;
+				
 					$tempParts = $tempDestination->canonicalModulePathParts;
 					
 					while (true)
@@ -152,7 +168,7 @@ abstract class XXX_MPC_Router
 				}
 			}
 						
-			$destination = new XXX_MPC_Destination($route, $presenterContext);
+			$destination = new XXX_MPC_Destination($project, $deployIdentifier, $route, $presenterContext);
 						
 			self::$destinations[] = $destination;
 			
@@ -449,7 +465,7 @@ abstract class XXX_MPC_Router
 						case 'string':
 							if (XXX_String::findFirstPosition($route, $routeRewrite['canonical']) !== false)
 							{
-								trigger_error('Route rewrite for "' . $routeRewrite['canonical'] . '" contains same part as rewrite "' . $routeRewrite['rewrite'] . '", and causes an infinite loop.');
+								trigger_error('Route rewrite for "' . $routeRewrite['canonical'] . '" contains same part as rewrite "' . $routeRewrite['rewrite'] . '", and causes an infinite loop.', E_USER_ERROR);
 							}
 							else
 							{

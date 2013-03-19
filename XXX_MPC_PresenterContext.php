@@ -189,6 +189,8 @@ class XXX_MPC_PresenterContext
 		
 		$foundPresenter = false;
 		
+		$presenter = XXX_String::replace($presenter, '/', XXX_OperatingSystem::$directorySeparator);
+		
 		$alternatives = array();
 		
 		$alternatives[] = $presenter;
@@ -204,21 +206,22 @@ class XXX_MPC_PresenterContext
 		{
 			$alternatives[] = $presenter . '.htm';
 		}
-		if (!XXX_String::endsWith($presenter, '.css'))
-		{
-			$alternatives[] = $presenter . '.css';
-		}
 		if (!XXX_String::endsWith($presenter, '.js'))
 		{
 			$alternatives[] = $presenter . '.js';
 		}
+		if (!XXX_String::endsWith($presenter, '.css'))
+		{
+			$alternatives[] = $presenter . '.css';
+		}
+		
 		
 		foreach ($alternatives as $alternative)
 		{
-			if (XXX_FileSystem_Local::doesFileExist(XXX_Path_Local::extendPath(XXX::$deploymentInformation['deployPathPrefix'], $presentersPathPrefix . $alternative)))
+			if (XXX_FileSystem_Local::doesFileExist(XXX_Path_Local::extendPath($presentersPathPrefix, $alternative)))
 			{
 				$presenter = $alternative;
-				$presenterFilePath = XXX_Path_Local::extendPath(XXX::$deploymentInformation['deployPathPrefix'], $presentersPathPrefix . $alternative);
+				$presenterFilePath = XXX_Path_Local::extendPath($presentersPathPrefix, $alternative);
 				
 				$foundPresenter = true;
 				

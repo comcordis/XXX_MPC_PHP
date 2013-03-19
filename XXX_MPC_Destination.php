@@ -1,7 +1,10 @@
 <?php
 
 class XXX_MPC_Destination
-{	
+{
+	public $project = '';
+	public $deployIdentifier = 'latest';
+	
 	public $currentPartIndex = 0;
 	
 	public $rawRoute = '';
@@ -40,8 +43,22 @@ class XXX_MPC_Destination
 	
 	public $error = false;
 	
-	public function __construct ($route = '', $presenterContext = false)
+	public function __construct ($project = '', $deployIdentifer = '', $route = '', $presenterContext = false)
 	{
+		if ($project == false || $project == '')
+		{
+			$project = XXX::$deploymentInformation['project'];
+		}
+		
+		$this->project = $project;
+		
+		if ($deployIdentifier == false || $deployIdentifier == '')
+		{
+			$deployIdentifier = XXX::$deploymentInformation['deployEnvironment'];
+		}
+		
+		$this->deployIdentifier = $deployIdentifier;
+		
 		$this->rawRoute = $route;
 		$this->rawRouteParts = XXX_String::splitToArray($this->rawRoute, '/');
 		
@@ -50,13 +67,13 @@ class XXX_MPC_Destination
 		
 		$this->presenterContext = $presenterContext;
 		
-		$this->canonicalModulePathPrefix = XXX::$deploymentInformation['deployPathPrefix'];
+		$this->canonicalModulePathPrefix = XXX_Path_Local::composeOtherProjectDeploymentSourcePathPrefix($this->project, $this->deployIdentifier);
 	}
 	
 	public function traverseNextRoutePart ()
 	{		
 		while (true)
-		{			
+		{
 			$this->findAndInitializeModule();
 			
 			if ($this->parsedModule)
@@ -87,11 +104,15 @@ class XXX_MPC_Destination
 			{
 				if (XXX_MPC_Router::$invalidRouteRoute == '')
 				{
-					trigger_error($this->error);
+					trigger_error($this->error, E_USER_ERROR);
 				}
 				else if (XXX_MPC_Router::$invalidRouteRoute != $this->rawRoute)
-				{				
+				{
 					XXX_MPC_Router::executeRoute(XXX_MPC_Router::$invalidRouteRoute, false);
+				}
+				else
+				{
+					trigger_error($this->error, E_USER_ERROR);
 				}
 				
 				$this->executed = true;
@@ -403,11 +424,13 @@ class XXX_MPC_Destination
 	
 	public function composePaths ()
 	{
-		$this->pathPrefixes['globalModulePathPrefix'] = XXX_Path_Local::$deploymentSourcePathPrefix;
-		$this->pathPrefixes['globalControllersPathPrefix'] = XXX_Path_Local::$deploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['controllers'] . XXX_OperatingSystem::$directorySeparator;
-		$this->pathPrefixes['globalModelsPathPrefix'] = XXX_Path_Local::$deploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['models'] . XXX_OperatingSystem::$directorySeparator;
-		$this->pathPrefixes['globalPresentersPathPrefix'] = XXX_Path_Local::$deploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['presenters'] . XXX_OperatingSystem::$directorySeparator;
-		$this->pathPrefixes['globalModulesPathPrefix'] = XXX_Path_Local::$deploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator;
+		$projectDeploymentSourcePathPrefix = XXX_Path_Local::composeOtherProjectDeploymentSourcePathPrefix($this->project, $this->deployIdentifier);
+		
+		$this->pathPrefixes['globalModulePathPrefix'] = $projectDeploymentSourcePathPrefix;
+		$this->pathPrefixes['globalControllersPathPrefix'] = $projectDeploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['controllers'] . XXX_OperatingSystem::$directorySeparator;
+		$this->pathPrefixes['globalModelsPathPrefix'] = $projectDeploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['models'] . XXX_OperatingSystem::$directorySeparator;
+		$this->pathPrefixes['globalPresentersPathPrefix'] = $projectDeploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['presenters'] . XXX_OperatingSystem::$directorySeparator;
+		$this->pathPrefixes['globalModulesPathPrefix'] = $projectDeploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator;
 		
 		$this->pathPrefixes['modulePathPrefix'] = $this->canonicalModulePathPrefix;
 		$this->pathPrefixes['controllersPathPrefix'] = $this->canonicalModulePathPrefix . XXX_MPC_Router::$directoryNames['controllers'] . XXX_OperatingSystem::$directorySeparator;
@@ -416,11 +439,18 @@ class XXX_MPC_Destination
 		$this->pathPrefixes['modulesPathPrefix'] = $this->canonicalModulePathPrefix . XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator;
 		
 		
-		$this->pathPrefixes['globalPresentersURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . XXX::$deploymentInformation['project'] . '/' . XXX_MPC_Router::$directoryNames['presenters'] . '/';
-		$this->pathPrefixes['presentersURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . XXX::$deploymentInformation['project'] . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/' . XXX_MPC_Router::$directoryNames['presenters'] . '/';
+		$this->pathPrefixes['globalTranslationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . 'i18n' . '/' . 'translations' . '/';
+		$this->pathPrefixes['translationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/'. 'i18n' . '/' . 'translations' . '/';
+		
+		
+		$this->pathPrefixes['globalLocalizationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . 'i18n' . '/' . 'localizations' . '/';
+		$this->pathPrefixes['localizationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/'. 'i18n' . '/' . 'localizations' . '/';
+		
+		$this->pathPrefixes['globalPresentersURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . XXX_MPC_Router::$directoryNames['presenters'] . '/';
+		$this->pathPrefixes['presentersURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/' . XXX_MPC_Router::$directoryNames['presenters'] . '/';
 				
 		// Strip the arguments off of the raw route parts, remaining the raw route parts up to the action
-			
+		
 		$argumentsTotal = XXX_Array::getFirstLevelItemTotal($this->arguments);
 		
 		$tempRawRouteParts = $this->rawRouteParts;
@@ -459,7 +489,7 @@ class XXX_MPC_Destination
 				$controllerInstance = new $this->canonicalControllerName();
 				$controllerInstance->setDestination($this);
 				$controllerInstance->setPresenterContext($this->presenterContext);
-							
+				
 				call_user_func(array($controllerInstance, $this->canonicalActionName), $this->arguments);
 				
 				$this->executed = true;

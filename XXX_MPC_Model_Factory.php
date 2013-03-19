@@ -38,7 +38,7 @@ abstract class XXX_MPC_Model_Factory
 			}
 			else
 			{
-				trigger_error('Model "' . $model . '" doesn\'t exist.');
+				trigger_error('Model "' . $model . '" doesn\'t exist.', E_USER_ERROR);
 			}
 		}
 		

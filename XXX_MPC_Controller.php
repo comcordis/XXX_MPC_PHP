@@ -92,6 +92,16 @@ class XXX_MPC_Controller
 	{
 		return $this->presenterContext;
 	}
+	
+	public function getArguments ()
+	{
+		return $this->destination->getArguments();
+	}
+	
+	public function getFirstArgument ()
+	{
+		return $this->destination->getFirstArgument();
+	}
 		
 	public function index ()
 	{
