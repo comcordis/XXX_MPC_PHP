@@ -182,9 +182,9 @@ class XXX_MPC_PresenterContext
 		{
 			$presentersPathPrefix = $this->getPathPrefix('presenters');
 		}
-		else if ($presentersPathPrefix == 'globalPresenters')
+		else if ($presentersPathPrefix == 'projectPresenters')
 		{
-			$presentersPathPrefix = $this->getPathPrefix('globalPresenters');
+			$presentersPathPrefix = $this->getPathPrefix('projectPresenters');
 		}
 		
 		$foundPresenter = false;
@@ -251,6 +251,12 @@ class XXX_MPC_PresenterContext
 			$argument = $arguments;
 		}
 		
+		// Convert array keys to local variables
+		if (XXX_Type::isArray($arguments))
+		{
+			extract($arguments, EXTR_SKIP);
+		}
+		
 		if ($returnOutput)
 		{
 			XXX_Client_Output::startBuffer(false);
@@ -265,9 +271,9 @@ class XXX_MPC_PresenterContext
 		{
 			$presentersPathPrefix = $this->getPathPrefix('presenters');
 		}
-		else if ($presentersPathPrefix == 'globalPresenters')
+		else if ($presentersPathPrefix == 'projectPresenters')
 		{
-			$presentersPathPrefix = $this->getPathPrefix('globalPresenters');
+			$presentersPathPrefix = $this->getPathPrefix('projectPresenters');
 		}
 		
 		$foundPresenter = false;

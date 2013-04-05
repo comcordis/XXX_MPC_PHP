@@ -5,10 +5,39 @@ abstract class XXX_MPC_EntryPointRoute
 	public static $defaultEntryPointRoute = '';
 	
 	public static $bareEntryPointRoute = '';
+	public static $bareEntryPointRouteParts = '';
 	
 	public static function initialize ()
 	{
 		self::$bareEntryPointRoute = self::getBareEntryPointRoute();
+		self::$bareEntryPointRouteParts = XXX_String::splitToArray(self::$bareEntryPointRoute, '/');
+	}
+	
+	public static function hasPart ($part = '')
+	{
+		$result = false;
+		
+		if (XXX_Type::isArray($part))
+		{
+			foreach ($part as $tempPart)
+			{
+				if (XXX_Array::hasValue(self::$bareEntryPointRouteParts, $tempPart))
+				{
+					$result = true;
+					
+					break;
+				}
+			}
+		}
+		else
+		{
+			if (XXX_Array::hasValue(self::$bareEntryPointRouteParts, $part))
+			{
+				$result = true;
+			}
+		}
+		
+		return $result;
 	}
 	
 	public static function getBareEntryPointRoute ()
@@ -25,7 +54,7 @@ abstract class XXX_MPC_EntryPointRoute
 			case 'commandLine':
 				$foundRoute = false;
 			
-				for ($i = 0, $iEnd = count($argv); $i < $iEnd; ++$i)
+				for ($i = 0, $iEnd = XXX_Array::getFirstLevelItemTotal($argv); $i < $iEnd; ++$i)
 				{
 					$tempArgument = $argv[$i];
 					

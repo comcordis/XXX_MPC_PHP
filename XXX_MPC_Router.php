@@ -102,14 +102,14 @@ abstract class XXX_MPC_Router
 				{
 					$tempDestination = self::getCurrentDestination();				
 				}
-								
+				
 				if ($tempDestination)
 				{
 					// Only relative within same project and deployIdentifier
-					$project = $tempDestination->project;
-					$deployIdentifier = $tempDestination->deployIdentifier;
+					$project = $tempDestination->getProject();
+					$deployIdentifier = $tempDestination->getDeployIdentifier();
 				
-					$tempParts = $tempDestination->canonicalModulePathParts;
+					$tempParts = $tempDestination->getModulePathParts();
 					
 					while (true)
 					{
@@ -167,7 +167,7 @@ abstract class XXX_MPC_Router
 					}
 				}
 			}
-						
+								
 			$destination = new XXX_MPC_Destination($project, $deployIdentifier, $route, $presenterContext);
 						
 			self::$destinations[] = $destination;
@@ -218,9 +218,9 @@ abstract class XXX_MPC_Router
 		
 		if ($addExecutionEnvironmentPrefix)
 		{
-			$defaultEntryPointRoute = XXX_MPC_EntryPointRoute::addExecutionEnvironmentPrefixToRoute($defaultEntryPointRoute);
+			$invalidRouteRoute = XXX_MPC_EntryPointRoute::addExecutionEnvironmentPrefixToRoute($invalidRouteRoute);
 		}
-		
+				
 		self::$invalidRouteRoute = $invalidRouteRoute;
 	}
 	

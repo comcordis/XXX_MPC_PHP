@@ -102,6 +102,16 @@ class XXX_MPC_Controller
 	{
 		return $this->destination->getFirstArgument();
 	}
+	
+	public function getSecondArgument ()
+	{
+		return $this->destination->getSecondArgument();
+	}
+	
+	public function getThirdArgument ()
+	{
+		return $this->destination->getThirdArgument();
+	}
 		
 	public function index ()
 	{

@@ -108,7 +108,7 @@ class XXX_MPC_Destination
 				}
 				else if (XXX_MPC_Router::$invalidRouteRoute != $this->rawRoute)
 				{
-					XXX_MPC_Router::executeRoute(XXX_MPC_Router::$invalidRouteRoute, false);
+					XXX_MPC_Router::executeRoute(false, false, XXX_MPC_Router::$invalidRouteRoute, false);
 				}
 				else
 				{
@@ -174,7 +174,11 @@ class XXX_MPC_Destination
 			// As is
 			$alternatives[] = $currentPart;
 			// Aliassed
-			$alternatives[] = XXX_MPC_Router::processModuleAliasses($currentPart, $this->canonicalRouteParts);
+			$unaliassedCurrentPart = XXX_MPC_Router::processModuleAliasses($currentPart, $this->canonicalRouteParts);
+			if ($unaliassedCurrentPart != $currentPart)
+			{
+				$alternatives[] = $unaliassedCurrentPart;
+			}
 			
 			foreach ($alternatives as $alternative)
 			{
@@ -186,6 +190,7 @@ class XXX_MPC_Destination
 					$this->canonicalModulePathPrefix .= XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator . $this->canonicalModuleName . XXX_OperatingSystem::$directorySeparator;
 					$this->canonicalModulePathParts[] = $this->canonicalModuleName;
 					$this->canonicalRouteParts[] = $this->canonicalModuleName;
+					$this->canonicalRoute = XXX_Array::joinValuesToString($this->canonicalRouteParts, '/');
 					
 					++$this->currentPartIndex;
 					break;
@@ -204,8 +209,6 @@ class XXX_MPC_Destination
 			{
 				$beforeCurrentPartIndex = $this->currentPartIndex;
 				
-				$mimicModuleInitializer = false;
-				
 				$tempModule = XXX_Array::joinValuesToString($this->canonicalModulePathParts, XXX_OperatingSystem::$directorySeparator);
 								
 				if (!XXX_Array::hasValue(XXX_MPC_Router::$initializedModules, $tempModule))
@@ -220,19 +223,21 @@ class XXX_MPC_Destination
 						$moduleInitializer = XXX_MPC_Router::$defaultModuleInitializer;
 					}
 					
-					if ((include_once XXX_Path_Local::extendPath($this->canonicalModulePathPrefix, $moduleInitializer)))
+					$moduleInitializerFilePath = XXX_Path_Local::extendPath($this->canonicalModulePathPrefix, $moduleInitializer);
+					
+					XXX_Path_Local::addDefaultIncludePathsForPath($this->canonicalModulePathPrefix);
+					
+					if ((include_once $moduleInitializerFilePath))
 					{
 						// The initializer didn't continue the route
 						if ($beforeCurrentPartIndex == $this->currentPartIndex)
 						{
-							$mimicModuleInitializer = true;
 						}
 					}
 					else
 					{
 						if (!XXX_MPC_Router::$requireModuleInitializer)
 						{
-							$mimicModuleInitializer = true;
 						}
 						else
 						{
@@ -241,17 +246,8 @@ class XXX_MPC_Destination
 							trigger_error('No initializer for ' . $this->canonicalModulePathPrefix);
 						}
 					}
-										
-					if ($mimicModuleInitializer)
-					{
-						XXX_Path_Local::addDefaultIncludePathsForPath($this->canonicalModulePathPrefix);
-							
-						// Keep traversing the route
-					}
 				}
 			}
-			
-			$this->canonicalRoute = XXX_Array::joinValuesToString($this->canonicalRouteParts, '/');
 		}
 	}
 	
@@ -267,11 +263,16 @@ class XXX_MPC_Destination
 			
 			$partAlternatives = array();
 			$partAlternatives[] = $currentPart;
-			$partAlternatives[] = XXX_MPC_Router::processControllerAliasses($currentPart, $this->canonicalRouteParts);
-			if (XXX_MPC_Router::$defaultController != '')
+			$unaliassedCurrentPart = XXX_MPC_Router::processControllerAliasses($currentPart, $this->canonicalRouteParts);
+			if ($unaliassedCurrentPart != $currentPart)
+			{
+				$partAlternatives[] = $unaliassedCurrentPart;
+			}
+			/*if (XXX_MPC_Router::$defaultController != '' && XXX_MPC_Router::$defaultController != $currentPart)
 			{
 				$partAlternatives[] = XXX_MPC_Router::$defaultController;
 			}
+			*/
 			
 			
 			$alternatives = array();
@@ -330,6 +331,7 @@ class XXX_MPC_Destination
 					$this->canonicalControllerName = $alternative;
 					
 					$this->canonicalRouteParts[] = $this->canonicalControllerName;
+					$this->canonicalRoute = XXX_Array::joinValuesToString($this->canonicalRouteParts, '/');
 					
 					include_once XXX_Path_Local::extendPath($this->canonicalModulePathPrefix, XXX_MPC_Router::$directoryNames['controllers'] . XXX_OperatingSystem::$directorySeparator . $this->canonicalControllerName . '.php');
 					
@@ -337,8 +339,6 @@ class XXX_MPC_Destination
 					break;
 				}
 			}
-						
-			$this->canonicalRoute = XXX_Array::joinValuesToString($this->canonicalRouteParts, '/');
 			
 			if (!$this->parsedController)
 			{
@@ -359,12 +359,16 @@ class XXX_MPC_Destination
 			// As is
 			$alternatives[] = $currentPart;
 			// Aliassed
-			$alternatives[] = XXX_MPC_Router::processActionAliasses($currentPart, $this->canonicalRouteParts);
-			if (XXX_MPC_Router::$defaultAction != '')
+			$unaliassedCurrentPart = XXX_MPC_Router::processActionAliasses($currentPart, $this->canonicalRouteParts);
+			if ($unaliassedCurrentPart != $currentPart)
+			{
+				$alternatives[] = $unaliassedCurrentPart;
+			}
+			/*if (XXX_MPC_Router::$defaultAction != '' && XXX_MPC_Router::$defaultAction != $currentPart)
 			{
 				// Default
 				$alternatives[] = XXX_MPC_Router::$defaultAction;
-			}
+			}*/
 			
 			foreach ($alternatives as $alternative)
 			{
@@ -375,13 +379,13 @@ class XXX_MPC_Destination
 					$this->canonicalActionName = $alternative;
 					
 					$this->canonicalRouteParts[] = $this->canonicalActionName;
+					$this->canonicalRoute = XXX_Array::joinValuesToString($this->canonicalRouteParts, '/');
 					
 					++$this->currentPartIndex;
 					break;
 				}
 			}
 						
-			$this->canonicalRoute = XXX_Array::joinValuesToString($this->canonicalRouteParts, '/');
 			
 			if (!$this->parsedAction)
 			{
@@ -408,6 +412,7 @@ class XXX_MPC_Destination
 				$this->arguments[] = $this->rewrittenRouteParts[$i];
 				
 				$this->canonicalRouteParts[] = $this->rewrittenRouteParts[$i];
+				$this->canonicalRoute = XXX_Array::joinValuesToString($this->canonicalRouteParts, '/');
 				
 				++$j;
 			}
@@ -415,8 +420,6 @@ class XXX_MPC_Destination
 			$this->parsedArguments = true;
 			
 			$this->fullyTraversedRouteParts = true;
-			
-			$this->canonicalRoute = XXX_Array::joinValuesToString($this->canonicalRouteParts, '/');
 			
 			$this->composePaths();
 		}
@@ -426,11 +429,11 @@ class XXX_MPC_Destination
 	{
 		$projectDeploymentSourcePathPrefix = XXX_Path_Local::composeOtherProjectDeploymentSourcePathPrefix($this->project, $this->deployIdentifier);
 		
-		$this->pathPrefixes['globalModulePathPrefix'] = $projectDeploymentSourcePathPrefix;
-		$this->pathPrefixes['globalControllersPathPrefix'] = $projectDeploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['controllers'] . XXX_OperatingSystem::$directorySeparator;
-		$this->pathPrefixes['globalModelsPathPrefix'] = $projectDeploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['models'] . XXX_OperatingSystem::$directorySeparator;
-		$this->pathPrefixes['globalPresentersPathPrefix'] = $projectDeploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['presenters'] . XXX_OperatingSystem::$directorySeparator;
-		$this->pathPrefixes['globalModulesPathPrefix'] = $projectDeploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator;
+		$this->pathPrefixes['projectModulePathPrefix'] = $projectDeploymentSourcePathPrefix;
+		$this->pathPrefixes['projectControllersPathPrefix'] = $projectDeploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['controllers'] . XXX_OperatingSystem::$directorySeparator;
+		$this->pathPrefixes['projectModelsPathPrefix'] = $projectDeploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['models'] . XXX_OperatingSystem::$directorySeparator;
+		$this->pathPrefixes['projectPresentersPathPrefix'] = $projectDeploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['presenters'] . XXX_OperatingSystem::$directorySeparator;
+		$this->pathPrefixes['projectModulesPathPrefix'] = $projectDeploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator;
 		
 		$this->pathPrefixes['modulePathPrefix'] = $this->canonicalModulePathPrefix;
 		$this->pathPrefixes['controllersPathPrefix'] = $this->canonicalModulePathPrefix . XXX_MPC_Router::$directoryNames['controllers'] . XXX_OperatingSystem::$directorySeparator;
@@ -439,17 +442,17 @@ class XXX_MPC_Destination
 		$this->pathPrefixes['modulesPathPrefix'] = $this->canonicalModulePathPrefix . XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator;
 		
 		
-		$this->pathPrefixes['globalTranslationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . 'i18n' . '/' . 'translations' . '/';
+		$this->pathPrefixes['projectTranslationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . 'i18n' . '/' . 'translations' . '/';
 		$this->pathPrefixes['translationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/'. 'i18n' . '/' . 'translations' . '/';
 		
 		
-		$this->pathPrefixes['globalLocalizationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . 'i18n' . '/' . 'localizations' . '/';
+		$this->pathPrefixes['projectLocalizationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . 'i18n' . '/' . 'localizations' . '/';
 		$this->pathPrefixes['localizationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/'. 'i18n' . '/' . 'localizations' . '/';
 		
-		$this->pathPrefixes['globalPresentersURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . XXX_MPC_Router::$directoryNames['presenters'] . '/';
+		$this->pathPrefixes['projectPresentersURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . XXX_MPC_Router::$directoryNames['presenters'] . '/';
 		$this->pathPrefixes['presentersURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/' . XXX_MPC_Router::$directoryNames['presenters'] . '/';
 				
-		// Strip the arguments off of the raw route parts, remaining the raw route parts up to the action
+		// Strip the arguments off of the raw route parts, leaving the raw route parts up to the action
 		
 		$argumentsTotal = XXX_Array::getFirstLevelItemTotal($this->arguments);
 		
@@ -485,7 +488,7 @@ class XXX_MPC_Destination
 		{
 			if ($this->parsedModule && $this->parsedController && $this->parsedAction && $this->fullyTraversedRouteParts)
 			{
-				// TODO controller factory ???
+				// TODO controller factory ??? No
 				$controllerInstance = new $this->canonicalControllerName();
 				$controllerInstance->setDestination($this);
 				$controllerInstance->setPresenterContext($this->presenterContext);
@@ -497,19 +500,56 @@ class XXX_MPC_Destination
 		}
 	}
 	
+	public function getProject ()
+	{
+		return $this->project;
+	}
+	
+	public function getDeployIdentifier ()
+	{
+		return $this->deployIdentifier;
+	}
+	
 	public function getRoute ()
 	{
-		return $this->rewrittenRoute;
+		return $this->canonicalRoute;
 	}
 	
 	public function getRouteParts ()
 	{
-		return $this->rewrittenRouteParts;
+		return $this->canonicalRouteParts;
 	}
 	
 	public function hasPart ($part = '')
 	{
-		return XXX_Array::hasValue($this->rewrittenRouteParts, $part);
+		$result = false;
+		
+		if (XXX_Type::isArray($part))
+		{
+			foreach ($part as $tempPart)
+			{
+				if (XXX_Array::hasValue($this->canonicalRouteParts, $tempPart))
+				{
+					$result = true;
+					
+					break;
+				}
+			}
+		}
+		else
+		{
+			if (XXX_Array::hasValue($this->canonicalRouteParts, $part))
+			{
+				$result = true;
+			}
+		}
+		
+		return $result;
+	}
+	
+	public function getModulePathParts ()
+	{
+		return $this->canonicalModulePathParts;
 	}
 	
 	public function getModule ()
@@ -541,7 +581,17 @@ class XXX_MPC_Destination
 	{
 		return $this->arguments[0];
 	}
-		
+	
+	public function getSecondArgument ()
+	{
+		return $this->arguments[1];
+	}
+	
+	public function getThirdArgument ()
+	{
+		return $this->arguments[2];
+	}
+	
 	/*
 	
 	- current
@@ -550,14 +600,12 @@ class XXX_MPC_Destination
 		- models
 		- presenters
 		- modules
-		- navigationAction
-		- navigationController
-	- global
-		- globalModule
-		- globalControllers
-		- globalModels
-		- globalPresenters
-		- globalModules
+	- project
+		- projectModule
+		- projectControllers
+		- projectModels
+		- projectPresenters
+		- projectModules
 	*/
 	
 	public function getPathPrefix ($key = '')
