@@ -96,7 +96,7 @@ class XXX_MPC_PresenterContext
 			return $result;
 		}
 		
-		public function getURIPathPrefix ($key = '', $destinationType = 'current')
+		public function getURIPathPrefix ($key = '', $suffix = '', $destinationType = 'current')
 		{
 			$result = false;
 			
@@ -105,11 +105,15 @@ class XXX_MPC_PresenterContext
 			if ($destination !== false)
 			{
 				$result = $destination->getURIPathPrefix($key);
+				$result .= $suffix;
+				
+				$result = XXX_Static_Publisher::prefixAndMapFile($result);
 			}
 			
 			return $result;
 		}
 		
+				
 	// Paths
 		
 		public function setPath ($key = '', $value = '')

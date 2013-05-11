@@ -442,15 +442,20 @@ class XXX_MPC_Destination
 		$this->pathPrefixes['modulesPathPrefix'] = $this->canonicalModulePathPrefix . XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator;
 		
 		
-		$this->pathPrefixes['projectTranslationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . 'i18n' . '/' . 'translations' . '/';
-		$this->pathPrefixes['translationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/'. 'i18n' . '/' . 'translations' . '/';
 		
 		
-		$this->pathPrefixes['projectLocalizationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . 'i18n' . '/' . 'localizations' . '/';
-		$this->pathPrefixes['localizationsURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/'. 'i18n' . '/' . 'localizations' . '/';
+		$this->pathPrefixes['projectTranslationsURIPathPrefix'] = $this->project . '/' . 'i18n' . '/' . 'translations' . '/';
+		$this->pathPrefixes['translationsURIPathPrefix'] = $this->project . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/'. 'i18n' . '/' . 'translations' . '/';
 		
-		$this->pathPrefixes['projectPresentersURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . XXX_MPC_Router::$directoryNames['presenters'] . '/';
-		$this->pathPrefixes['presentersURIPathPrefix'] = XXX_URI::$staticURIPathPrefix . $this->project . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/' . XXX_MPC_Router::$directoryNames['presenters'] . '/';
+		
+		$this->pathPrefixes['projectLocalizationsURIPathPrefix'] = $this->project . '/' . 'i18n' . '/' . 'localizations' . '/';
+		$this->pathPrefixes['localizationsURIPathPrefix'] = $this->project . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/'. 'i18n' . '/' . 'localizations' . '/';
+		
+		$this->pathPrefixes['projectPresentersURIPathPrefix'] = $this->project . '/' . XXX_MPC_Router::$directoryNames['presenters'] . '/';
+		$this->pathPrefixes['presentersURIPathPrefix'] = $this->project . '/' . XXX_MPC_Router::$directoryNames['modules'] . '/' . implode('/' . XXX_MPC_Router::$directoryNames['modules'] . '/', $this->canonicalModulePathParts) . '/' . XXX_MPC_Router::$directoryNames['presenters'] . '/';
+		
+		
+		
 				
 		// Strip the arguments off of the raw route parts, leaving the raw route parts up to the action
 		
