@@ -525,15 +525,45 @@ class XXX_MPC_Destination
 		return $this->canonicalRouteParts;
 	}
 	
-	public function hasPart ($part = '')
+	public function hasRawPart ($part = '')
+	{
+		return self::hasPart($part, 'raw');
+	}
+	
+	public function hasRewrittenPart ($part = '')
+	{
+		return self::hasPart($part, 'rewritten');
+	}
+	
+	public function hasCanonicalPart ($part = '')
+	{
+		return self::hasPart($part, 'canonical');
+	}
+	
+	public function hasPart ($part = '', $type = 'canonical')
 	{
 		$result = false;
+		
+		$routeParts = array();
+		
+		switch ($type)
+		{
+			case 'raw':
+				$routeParts = $this->rawRouteParts;
+				break;
+			case 'rewritten':
+				$routeParts = $this->rewrittenRouteParts;
+				break;
+			case 'canonical':
+				$routeParts = $this->canonicalRouteParts;
+				break;
+		}
 		
 		if (XXX_Type::isArray($part))
 		{
 			foreach ($part as $tempPart)
 			{
-				if (XXX_Array::hasValue($this->canonicalRouteParts, $tempPart))
+				if (XXX_Array::hasValue($routeParts, $tempPart))
 				{
 					$result = true;
 					
@@ -543,7 +573,7 @@ class XXX_MPC_Destination
 		}
 		else
 		{
-			if (XXX_Array::hasValue($this->canonicalRouteParts, $part))
+			if (XXX_Array::hasValue($routeParts, $part))
 			{
 				$result = true;
 			}

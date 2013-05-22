@@ -212,6 +212,48 @@ abstract class XXX_MPC_Router
 			return $result;
 		}
 		
+		
+		public static function hasRawEntryPart ($part = '')
+		{
+			return self::hasEntryPart($part, 'raw');
+		}
+		
+		public static function hasRewrittenEntryPart ($part = '')
+		{
+			return self::hasEntryPart($part, 'rewritten');
+		}
+		
+		public static function hasCanonicalEntryPart ($part = '')
+		{
+			return self::hasEntryPart($part, 'canonical');
+		}
+		
+		public static function hasEntryPart ($part = '', $type = 'canonical')
+		{
+			return self::$destinations[0]->hasPart($part, $type);
+		}
+		
+		
+		public static function hasRawCurrentPart ($part = '')
+		{
+			return self::hasCurrentPart($part, 'raw');
+		}
+		
+		public static function hasRewrittenCurrentPart ($part = '')
+		{
+			return self::hasCurrentPart($part, 'rewritten');
+		}
+		
+		public static function hasCanonicalCurrentPart ($part = '')
+		{
+			return self::hasCurrentPart($part, 'canonical');
+		}
+		
+		public static function hasCurrentPart ($part = '', $type = 'canonical')
+		{
+			return self::$destinations[XXX_Number::highest(XXX_Array::getFirstLevelItemTotal(self::$destinations) - 1, 0)]->hasPart($part, $type);
+		}
+		
 	public static function setInvalidRouteRoute ($invalidRouteRoute = '', $addExecutionEnvironmentPrefix = true)
 	{
 		$invalidRouteRoute = self::cleanRoute($invalidRouteRoute);
