@@ -493,6 +493,8 @@ class XXX_MPC_Destination
 		{
 			if ($this->parsedModule && $this->parsedController && $this->parsedAction && $this->fullyTraversedRouteParts)
 			{
+				XXX::dispatchEventToListeners('beforeDestinationExecution');
+			
 				// TODO controller factory ??? No
 				$controllerInstance = new $this->canonicalControllerName();
 				$controllerInstance->setDestination($this);
