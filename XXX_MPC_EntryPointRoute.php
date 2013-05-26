@@ -2,7 +2,7 @@
 
 abstract class XXX_MPC_EntryPointRoute
 {
-	public static $defaultEntryPointRoute = '';
+	public static $defaultEntryPointRoute = 'Index/index';
 	
 	public static $bareEntryPointRoute = '';
 	public static $bareEntryPointRouteParts = '';
@@ -159,44 +159,26 @@ abstract class XXX_MPC_EntryPointRoute
 	
 	public static function getEntryPointRoute ()
 	{
-		$route = '';
+		$route = XXX_MPC_Router::cleanRoute(XXX_MPC_EntryPointRoute::$bareEntryPointRoute);
 		
-		if ($route == '')
+		// Can't be just the entryPoint file
+		if ($route == basename($_SERVER['SCRIPT_FILENAME']))
 		{
-			$route = XXX_MPC_Router::cleanRoute(XXX_MPC_EntryPointRoute::$bareEntryPointRoute);
-			
-			// Can't be just the entryPoint file
-			if ($route == basename($_SERVER['SCRIPT_FILENAME']))
-			{
-				$route = '';
-			}
-			
-			if ($route != '')
-			{
-				$route = self::addExecutionEnvironmentPrefixToRoute($route);
-			}
+			$route = '';
 		}
 		
-		if ($route == '')
-		{
-			if (self::$defaultEntryPointRoute != '')
-			{
-				$route = XXX_MPC_Router::cleanRoute(self::$defaultEntryPointRoute);
-			}
-		}
+		$route = self::stripExecutionEnvironmentPrefixFromRoute($route);
+		$route = self::addExecutionEnvironmentPrefixToRoute($route);
+		
+		$route = XXX_MPC_Router::cleanRoute($route);
 		
 		return $route;
 	}
 	
-	public static function setDefaultEntryPointRoute ($defaultEntryPointRoute = '', $addExecutionEnvironmentPrefix = true)
+	public static function setDefaultEntryPointRoute ($defaultEntryPointRoute = '')
 	{
 		$defaultEntryPointRoute = XXX_MPC_Router::cleanRoute($defaultEntryPointRoute);
-		
-		if ($addExecutionEnvironmentPrefix)
-		{
-			$defaultEntryPointRoute = self::addExecutionEnvironmentPrefixToRoute($defaultEntryPointRoute);
-		}
-				
+			
 		self::$defaultEntryPointRoute = $defaultEntryPointRoute;
 	}
 }

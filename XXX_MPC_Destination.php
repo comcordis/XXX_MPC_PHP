@@ -8,7 +8,7 @@ class XXX_MPC_Destination
 	public $currentPartIndex = 0;
 	
 	public $rawRoute = '';
-	public $rawRouteParts = '';
+	public $rawRouteParts = array();
 	
 	public $rewrittenRoute = '';
 	public $rewrittenRouteParts = array();
@@ -164,6 +164,29 @@ class XXX_MPC_Destination
 	{
 		if (!$this->parsedModule)
 		{
+			// If no more parts
+			if ($this->currentPartIndex == XXX_Array::getFirstLevelItemTotal($this->rewrittenRouteParts))
+			{
+				if (XXX_MPC_EntryPointRoute::$defaultEntryPointRoute != '')
+				{
+					$defaultEntryPointRoute = XXX_MPC_Router::cleanRoute(XXX_MPC_EntryPointRoute::$defaultEntryPointRoute);
+					
+					$this->rawRoute = XXX_MPC_Router::cleanRoute($this->rawRoute);
+					$this->rawRoute .= '/' . $defaultEntryPointRoute;
+					
+					$this->rewrittenRoute = XXX_MPC_Router::cleanRoute($this->rewrittenRoute);
+					$this->rewrittenRoute .= '/' . $defaultEntryPointRoute;
+					
+					$additionalRouteParts = XXX_String::splitToArray($defaultEntryPointRoute, '/');
+					
+					foreach ($additionalRouteParts as $additionalRoutePart)
+					{
+						$this->rawRouteParts[] = $additionalRoutePart;
+						$this->rewrittenRouteParts[] = $additionalRoutePart;
+					}
+				}
+			}
+			
 			$this->tryRewritingRouteRemainder('module');
 			
 			$currentPart = $this->rewrittenRouteParts[$this->currentPartIndex];
