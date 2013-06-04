@@ -164,7 +164,10 @@ class XXX_MPC_Destination
 	{
 		if (!$this->parsedModule)
 		{
-			// If no more parts
+			// Strip prefixes first
+			$this->tryRewritingRouteRemainder('module');
+			
+			// If no more parts, try default
 			if ($this->currentPartIndex == XXX_Array::getFirstLevelItemTotal($this->rewrittenRouteParts))
 			{
 				if (XXX_MPC_EntryPointRoute::$defaultEntryPointRoute != '')
@@ -187,6 +190,7 @@ class XXX_MPC_Destination
 				}
 			}
 			
+			// Strip & rewrite prefixes
 			$this->tryRewritingRouteRemainder('module');
 			
 			$currentPart = $this->rewrittenRouteParts[$this->currentPartIndex];
