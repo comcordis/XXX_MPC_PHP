@@ -117,7 +117,7 @@ abstract class XXX_MPC_EntryPointRoute
 				}
 				break;
 			case 'commandLine':
-				$subExecutionEnvironment = XXX_CommandLine_Input::getArgumentVariable('subExecutionEnvironment');
+				$subExecutionEnvironment = XXX_CommandLine_Client_Input::getArgumentVariable('subExecutionEnvironment');
 				
 				if ($subExecutionEnvironment == '')
 				{
