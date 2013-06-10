@@ -248,7 +248,7 @@ class XXX_MPC_PresenterContext
 	
 	public function findAndLoad ($presenter = '', $arguments = array(), $returnOutput = false, $presentersPathPrefix = '')
 	{		
-		$result = false;
+		$presenterResult = false;
 		
 		if (!XXX_Type::isArray($arguments))
 		{
@@ -327,11 +327,11 @@ class XXX_MPC_PresenterContext
 			
 			if ($returnOutput)
 			{
-				$result = XXX_Client_Output::getBufferContent();
+				$presenterResult = XXX_Client_Output::getBufferContent();
 			}
 			else
 			{
-				$result = true;
+				$presenterResult = true;
 			}
 			
 			trigger_error('Path prefix: "' . $presentersPathPrefix . '" Presenter "' . $presenter . '" loaded');
@@ -351,7 +351,7 @@ class XXX_MPC_PresenterContext
 			$this->resetSettings();
 		}
 		
-		return $result;
+		return $presenterResult;
 	}
 }
 
