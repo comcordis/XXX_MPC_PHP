@@ -40,6 +40,33 @@ abstract class XXX_MPC_EntryPointRoute
 		return $result;
 	}
 	
+	public static function startsWith ($start = '')
+	{
+		$result = false;
+		
+		if (XXX_Type::isArray($start))
+		{
+			foreach ($start as $tempStart)
+			{
+				if (XXX_String::beginsWith(self::$bareEntryPointRoute, $tempStart))
+				{
+					$result = true;
+					
+					break;
+				}
+			}
+		}
+		else
+		{
+			if (XXX_String::beginsWith(self::$bareEntryPointRoute, $start))
+			{
+				$result = true;
+			}
+		}
+		
+		return $result;
+	}
+	
 	public static function getBareEntryPointRoute ()
 	{
 		global $argv;
