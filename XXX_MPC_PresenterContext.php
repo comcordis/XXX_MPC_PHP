@@ -173,7 +173,7 @@ class XXX_MPC_PresenterContext
 		return $this->elements[$key];
 	}
 	
-	public function getRawFileContent ($presenter = '', $presentersPathPrefix = '')
+	public function find ($presenter = '', $presentersPathPrefix = '')
 	{
 		$result = false;
 		
@@ -219,18 +219,42 @@ class XXX_MPC_PresenterContext
 			$alternatives[] = $presenter . '.css';
 		}
 		
-		
 		foreach ($alternatives as $alternative)
 		{
 			if (XXX_FileSystem_Local::doesFileExist(XXX_Path_Local::extendPath($presentersPathPrefix, $alternative)))
 			{
 				$presenter = $alternative;
+				
 				$presenterFilePath = XXX_Path_Local::extendPath($presentersPathPrefix, $alternative);
 				
 				$foundPresenter = true;
 				
 				break;
 			}
+		}
+		
+		if ($foundPresenter)
+		{
+			$result = $presenterFilePath;
+		}
+		else
+		{
+			trigger_error('Path prefix: "' . $presentersPathPrefix . '" Presenter "' . $presenter . '" unable to load');		
+		}
+		
+		return $result;
+	}
+	
+	
+	public function getRawFileContent ($presenter = '', $presentersPathPrefix = '')
+	{
+		$result = false;
+		
+		$foundPresenter = $this->find($presenter, $presentersPathPrefix);
+		
+		if ($foundPresenter)
+		{
+			$presenterFilePath = $foundPresenter;
 		}
 		
 		if ($foundPresenter)
@@ -265,62 +289,14 @@ class XXX_MPC_PresenterContext
 		{
 			XXX_Client_Output::startBuffer(false);
 		}
+		
+		$foundPresenter = $this->find($presenter, $presentersPathPrefix);
+		
+		if ($foundPresenter)
+		{
+			$presenterFilePath = $foundPresenter;
+		}
 				
-		if ($presentersPathPrefix == '')
-		{
-			$presentersPathPrefix = 'presenters';
-		}
-		
-		if ($presentersPathPrefix == 'presenters')
-		{
-			$presentersPathPrefix = $this->getPathPrefix('presenters');
-		}
-		else if ($presentersPathPrefix == 'projectPresenters')
-		{
-			$presentersPathPrefix = $this->getPathPrefix('projectPresenters');
-		}
-		
-		$foundPresenter = false;
-		
-		$presenter = XXX_String::replace($presenter, '/', XXX_OperatingSystem::$directorySeparator);
-		
-		$alternatives = array();
-		
-		$alternatives[] = $presenter;
-		if (!XXX_String::endsWith($presenter, '.php'))
-		{
-			$alternatives[] = $presenter . '.php';
-		}
-		if (!XXX_String::endsWith($presenter, '.html'))
-		{
-			$alternatives[] = $presenter . '.html';
-		}
-		if (!XXX_String::endsWith($presenter, '.htm'))
-		{
-			$alternatives[] = $presenter . '.htm';
-		}
-		if (!XXX_String::endsWith($presenter, '.css'))
-		{
-			$alternatives[] = $presenter . '.css';
-		}
-		if (!XXX_String::endsWith($presenter, '.js'))
-		{
-			$alternatives[] = $presenter . '.js';
-		}
-		
-		foreach ($alternatives as $alternative)
-		{
-			if (XXX_FileSystem_Local::doesFileExist(XXX_Path_Local::extendPath($presentersPathPrefix, $alternative)))
-			{
-				$presenter = $alternative;
-				$presenterFilePath = XXX_Path_Local::extendPath($presentersPathPrefix, $alternative);
-				
-				$foundPresenter = true;
-				
-				break;
-			}
-		}
-		
 		if ($foundPresenter)
 		{
 			include $presenterFilePath;
@@ -333,12 +309,6 @@ class XXX_MPC_PresenterContext
 			{
 				$presenterResult = true;
 			}
-			
-			trigger_error('Path prefix: "' . $presentersPathPrefix . '" Presenter "' . $presenter . '" loaded');
-		}
-		else
-		{
-			trigger_error('Path prefix: "' . $presentersPathPrefix . '" Presenter "' . $presenter . '" unable to load');		
 		}
 		
 		if ($this->settings['automaticallyResetVariables'])

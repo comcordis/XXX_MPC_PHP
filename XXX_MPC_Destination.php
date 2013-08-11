@@ -68,6 +68,7 @@ class XXX_MPC_Destination
 		$this->presenterContext = $presenterContext;
 		
 		$this->canonicalModulePathPrefix = XXX_Path_Local::composeOtherProjectDeploymentSourcePathPrefix($this->project, $this->deployIdentifier);
+		
 	}
 	
 	public function traverseNextRoutePart ()
@@ -310,6 +311,7 @@ class XXX_MPC_Destination
 				$alternatives[] = $partAlternative;
 				
 				$tempPrefix =  XXX::$deploymentInformation['project'] . '_Controller_';
+				
 				if (!XXX_String::beginsWith($partAlternative, $tempPrefix))
 				{
 					// Capitalized name, e.g. Www
@@ -368,7 +370,7 @@ class XXX_MPC_Destination
 			}
 			
 			if (!$this->parsedController)
-			{
+			{				
 				$this->error = 'invalidController';
 			}
 		}
