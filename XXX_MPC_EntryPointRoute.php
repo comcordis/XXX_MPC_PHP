@@ -136,7 +136,7 @@ abstract class XXX_MPC_EntryPointRoute
 		switch (XXX_PHP::$executionEnvironment)
 		{
 			case 'httpServer':
-				$subExecutionEnvironment = XXX_HTTPServer_Client::$parsedHost['subExecutionEnvironment'];
+				$subExecutionEnvironment = XXX_HTTPServer::$parsedHost['subExecutionEnvironment'];
 				
 				if ($subExecutionEnvironment == '')
 				{
