@@ -5,6 +5,8 @@ class XXX_MPC_Destination
 	public $project = '';
 	public $deployIdentifier = 'latest';
 	
+	public $isStatic = false;
+	
 	public $currentPartIndex = 0;
 	
 	public $rawRoute = '';
@@ -75,19 +77,24 @@ class XXX_MPC_Destination
 	{		
 		while (true)
 		{
-			$this->findAndInitializeModule();
+			$this->findAndInitializeStatic();
 			
-			if ($this->parsedModule)
+			if (!$this->isStatic)
 			{
-				$this->findAndLoadController();
+				$this->findAndInitializeModule();
 				
-				if ($this->parsedController)
+				if ($this->parsedModule)
 				{
-					$this->findAction();
+					$this->findAndLoadController();
 					
-					if ($this->parsedAction)
+					if ($this->parsedController)
 					{
-						$this->findArguments();
+						$this->findAction();
+						
+						if ($this->parsedAction)
+						{
+							$this->findArguments();
+						}
 					}
 				}
 			}
@@ -158,6 +165,63 @@ class XXX_MPC_Destination
 			{
 				$this->rewrittenRouteParts[] = $tempRewrittenRoutePartRemainder;
 			}
+		}
+	}
+	
+	public function findAndInitializeStatic ()
+	{
+		if (!$this->parsedStatic)
+		{		
+			// Strip prefixes first
+			$this->tryRewritingRouteRemainder('static');
+			
+			if ($this->rewrittenRouteParts[0] == 'httpServer')
+			{
+				if ($this->rewrittenRouteParts[1] == 'www')
+				{
+					if ($this->rewrittenRouteParts[2] == 'static')
+					{
+						switch ($this->rewrittenRouteParts[3])
+						{
+							case 'file':
+								$route = '';
+								
+								for ($i = 4, $iEnd = (XXX_Array::getFirstLevelItemTotal($this->rewrittenRouteParts)); $i < $iEnd; ++$i)
+								{
+									$route .= $this->rewrittenRouteParts[$i];
+									
+									if ($i < $iEnd - 1)
+									{
+										$route .= '/';	
+									}
+								}
+								
+								XXX_Static_HTTPServer::singleFile($route);
+								
+								$this->fullyTraversedRouteParts = true;
+								
+								$this->executed = true;
+								
+								$this->isStatic = true;
+								break;
+							case 'combinedFiles':
+								$files = XXX_HTTPServer_Client_Input::getURIVariable('files');
+								$fileType = XXX_HTTPServer_Client_Input::getURIVariable('fileType');
+								
+								XXX_Static_HTTPServer::combinedFiles($files, $fileType);
+								
+								$this->fullyTraversedRouteParts = true;
+								
+								$this->executed = true;
+								
+								$this->isStatic = true;
+								break;
+						}
+					}
+				}
+			}
+			
+			$this->parsedStatic = true;
 		}
 	}
 	
