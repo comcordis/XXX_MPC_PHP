@@ -77,14 +77,15 @@ class XXX_MPC_Destination
 	{		
 		while (true)
 		{
-			$this->findAndInitializeStatic();
 			
-			if (!$this->isStatic)
+			$this->findAndInitializeModule();
+			
+			if ($this->parsedModule)
 			{
-				$this->findAndInitializeModule();
-				
-				if ($this->parsedModule)
-				{
+				$this->findAndInitializeStatic();
+		
+				if (!$this->isStatic)
+				{					
 					$this->findAndLoadController();
 					
 					if ($this->parsedController)
@@ -171,7 +172,7 @@ class XXX_MPC_Destination
 	public function findAndInitializeStatic ()
 	{
 		if (!$this->parsedStatic)
-		{		
+		{
 			// Strip prefixes first
 			$this->tryRewritingRouteRemainder('static');
 			
