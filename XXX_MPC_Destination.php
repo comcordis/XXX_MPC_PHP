@@ -178,8 +178,8 @@ class XXX_MPC_Destination
 			
 			if ($this->rewrittenRouteParts[0] == 'httpServer')
 			{
-				if ($this->rewrittenRouteParts[1] == 'www')
-				{
+				//if ($this->rewrittenRouteParts[1] == 'www')
+				//{
 					if ($this->rewrittenRouteParts[2] == 'static')
 					{
 						switch ($this->rewrittenRouteParts[3])
@@ -197,7 +197,9 @@ class XXX_MPC_Destination
 									}
 								}
 								
-								XXX_Static_HTTPServer::singleFile($route);
+								$compress = XXX_HTTPServer_Client_Input::getURIVariable('compress', 'boolean');
+								
+								XXX_Static_HTTPServer::singleFile($route, $compress);
 								
 								$this->fullyTraversedRouteParts = true;
 								
@@ -208,8 +210,9 @@ class XXX_MPC_Destination
 							case 'combinedFiles':
 								$files = XXX_HTTPServer_Client_Input::getURIVariable('files');
 								$fileType = XXX_HTTPServer_Client_Input::getURIVariable('fileType');
+								$compress = XXX_HTTPServer_Client_Input::getURIVariable('compress', 'boolean');
 								
-								XXX_Static_HTTPServer::combinedFiles($files, $fileType);
+								XXX_Static_HTTPServer::combinedFiles($files, $fileType, $compress);
 								
 								$this->fullyTraversedRouteParts = true;
 								
@@ -219,7 +222,7 @@ class XXX_MPC_Destination
 								break;
 						}
 					}
-				}
+				//}
 			}
 			
 			$this->parsedStatic = true;
@@ -415,7 +418,7 @@ class XXX_MPC_Destination
 					}
 				}
 			}
-			
+						
 			foreach ($alternatives as $alternative)
 			{
 				if (XXX_FileSystem_Local::doesFileExist(XXX_Path_Local::extendPath($this->canonicalModulePathPrefix, XXX_MPC_Router::$directoryNames['controllers'] . XXX_OperatingSystem::$directorySeparator . $alternative . '.php')))
