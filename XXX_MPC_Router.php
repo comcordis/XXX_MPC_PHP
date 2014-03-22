@@ -56,7 +56,7 @@ abstract class XXX_MPC_Router
 			{
 				$route = XXX_MPC_EntryPointRoute::getEntryPointRoute();
 			}
-						
+			
 			self::executeRoute(XXX::$deploymentInformation['project'], XXX::$deploymentInformation['deployEnvironment'], $route, false);
 		}
 		else
@@ -167,7 +167,7 @@ abstract class XXX_MPC_Router
 					}
 				}
 			}
-								
+			
 			$destination = new XXX_MPC_Destination($project, $deployIdentifier, $route, $presenterContext);
 						
 			self::$destinations[] = $destination;
