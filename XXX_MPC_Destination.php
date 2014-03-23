@@ -71,8 +71,6 @@ class XXX_MPC_Destination
 		
 		$this->canonicalModulePathPrefix = XXX_Path_Local::composeOtherProjectDeploymentSourcePathPrefix($this->project, $this->deployIdentifier);
 		
-		echo $this->rawRoute . "\r\n";
-		echo $this->canonicalModulePathPrefix . "\r\n";
 	}
 	
 	public function traverseNextRoutePart ()
@@ -280,7 +278,6 @@ class XXX_MPC_Destination
 			
 			foreach ($alternatives as $alternative)
 			{
-				echo XXX_Path_Local::extendPath($this->canonicalModulePathPrefix, XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator . $alternative) . "\r\n";
 				if (XXX_FileSystem_Local::doesDirectoryExist(XXX_Path_Local::extendPath($this->canonicalModulePathPrefix, XXX_MPC_Router::$directoryNames['modules'] . XXX_OperatingSystem::$directorySeparator . $alternative)))
 				{
 					$traversedModule = true;
