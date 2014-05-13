@@ -368,7 +368,7 @@ abstract class XXX_MPC_Router
 	// false for every module on any level
 	// array() for project root
 	// array('httpServer', 'www') for httpServer/www
-	public static function comparseParentCanonicalRouteParts ($original = array(), $comparison = array())
+	public static function compareParentCanonicalRouteParts ($original = array(), $comparison = array())
 	{
 		$result = false;
 		
@@ -400,7 +400,7 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				if (self::comparseParentCanonicalRouteParts($moduleAlias['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
+				if (self::compareParentCanonicalRouteParts($moduleAlias['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
 				{
 					if ($module == $moduleAlias['alias'])
 					{
@@ -429,7 +429,7 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				if (self::comparseParentCanonicalRouteParts($controllerAlias['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
+				if (self::compareParentCanonicalRouteParts($controllerAlias['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
 				{
 					if ($controller == $controllerAlias['alias'])
 					{
@@ -458,7 +458,7 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				if (self::comparseParentCanonicalRouteParts($actionAlias['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
+				if (self::compareParentCanonicalRouteParts($actionAlias['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
 				{
 					if ($action == $actionAlias['alias'])
 					{
@@ -488,7 +488,7 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				if (self::comparseParentCanonicalRouteParts($routeRewrite['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
+				if (self::compareParentCanonicalRouteParts($routeRewrite['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
 				{
 					switch ($routeRewrite['type'])
 					{
@@ -577,8 +577,7 @@ abstract class XXX_MPC_Router
 			{
 				$matched = false;
 				
-				
-				if (self::comparseParentCanonicalRouteParts($routeCallback['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
+				if (self::compareParentCanonicalRouteParts($routeCallback['parentCanonicalRouteParts'], $parentCanonicalRouteParts))
 				{
 					$originalRoute = $route;
 					

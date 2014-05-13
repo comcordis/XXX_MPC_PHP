@@ -239,7 +239,7 @@ class XXX_MPC_PresenterContext
 		}
 		else
 		{
-			trigger_error('Path prefix: "' . $presentersPathPrefix . '" Presenter "' . $presenter . '" unable to load');		
+			trigger_error('Path prefix: "' . $presentersPathPrefix . '" Presenter "' . $presenter . '" unable to find');		
 		}
 		
 		return $result;

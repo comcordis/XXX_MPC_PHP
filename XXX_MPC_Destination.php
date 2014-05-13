@@ -198,7 +198,7 @@ class XXX_MPC_Destination
 								}
 								
 								$compress = XXX_HTTPServer_Client_Input::getURIVariable('compress', 'boolean');
-								
+																
 								XXX_Static_HTTPServer::singleFile($route, $compress);
 								
 								$this->fullyTraversedRouteParts = true;
