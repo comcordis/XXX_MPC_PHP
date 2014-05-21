@@ -82,6 +82,20 @@ class XXX_MPC_PresenterContext
 			return $result;
 		}
 		
+		public function getPathPrefixes ($destinationType = 'current')
+		{
+			$result = false;
+			
+			$destination = $this->getDestination($destinationType);
+			
+			if ($destination !== false)
+			{
+				$result = $destination->getPathPrefixes($key);
+			}
+			
+			return $result;
+		}
+		
 		public function getPathPrefix ($key = '', $destinationType = 'current')
 		{
 			$result = false;
@@ -322,6 +336,27 @@ class XXX_MPC_PresenterContext
 		}
 		
 		return $presenterResult;
+	}
+	// TODO static for images, js etc., normal for redirects etc.
+	public function composeJS ()
+	{
+		$pathPrefixes = $this->getPathPrefixes();
+		
+		$filteredPathPrefixes = array();
+		
+		foreach ($pathPrefixes as $key => $pathPrefix)
+		{
+			if (XXX_String::hasPart($key, 'URI'))
+			{
+				$filteredPathPrefixes[$key] = $pathPrefix;
+			}
+		}
+		
+		$result = '';
+		
+		$result .= 'XXX_MPC_PresenterContext.pathPrefixes = ' . XXX_String_JSON::encode($filteredPathPrefixes) . ';' . XXX_OperatingSystem::$lineSeparator;
+		
+		return $result;
 	}
 }
 

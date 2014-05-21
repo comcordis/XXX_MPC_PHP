@@ -751,6 +751,11 @@ class XXX_MPC_Destination
 	{
 		return $this->pathPrefixes[$key . 'URIPathPrefix'];
 	}
+	
+	public function getPathPrefixes ()
+	{
+		return $this->pathPrefixes;
+	}
 }
 
 ?>
