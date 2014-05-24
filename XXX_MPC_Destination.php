@@ -78,15 +78,15 @@ class XXX_MPC_Destination
 	{		
 		while (true)
 		{
-			
-			$this->findAndInitializeModule();
-			
-			if ($this->parsedModule)
-			{
-				$this->findAndInitializeReservedRoute();
+			$this->findAndInitializeReservedRoute();
 		
-				if (!$this->isReservedRoute)
-				{					
+			if (!$this->isReservedRoute)
+			{
+				$this->findAndInitializeModule();
+				
+				if ($this->parsedModule)
+				{
+									
 					$this->findAndLoadController();
 					
 					if ($this->parsedController)
@@ -196,35 +196,26 @@ class XXX_MPC_Destination
 			
 			if ($this->rewrittenRouteParts[0] == 'httpServer' && $this->rewrittenRouteParts[2] == 'static')
 			{
-				switch ($this->rewrittenRouteParts[3])
+				$file = XXX_HTTPServer_Client_Input::getURIVariable('file');
+				if ($file == '')
 				{
-					case 'file':
-						$file = XXX_HTTPServer_Client_Input::getURIVariable('file');
-						if ($file == '')
-						{
-							$file = $this->getRewrittenRouteRemainder(4);
-						}
-														
-						XXX_Static_HTTPServer::serveFile($file);
-						
-						$this->fullyTraversedRouteParts = true;
-						
-						$this->executed = true;
-						
-						$this->isReservedRoute = true;
-						break;
-					case 'files':
-						$files = XXX_HTTPServer_Client_Input::getURIVariable('files');
-						
-						XXX_Static_HTTPServer::serveFiles($files);
-						
-						$this->fullyTraversedRouteParts = true;
-						
-						$this->executed = true;
-						
-						$this->isReservedRoute = true;
-						break;
+					$file = $this->getRewrittenRouteRemainder(3);
 				}
+				
+				if ($file != '')
+				{	
+					XXX_Static_HTTPServer::serveFile($file);
+				}
+				else
+				{
+					$files = XXX_HTTPServer_Client_Input::getURIVariable('files');
+						
+					XXX_Static_HTTPServer::serveFiles($files);
+				}
+				
+				$this->fullyTraversedRouteParts = true;
+				$this->executed = true;
+				$this->isReservedRoute = true;
 			}
 			else
 			{

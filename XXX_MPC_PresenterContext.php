@@ -121,7 +121,7 @@ class XXX_MPC_PresenterContext
 				$result = $destination->getURIPathPrefix($key);
 				$result .= $suffix;
 				
-				$result = XXX_Static_Publisher::prefixAndMapFile($result);
+				$result = XXX_Static_Publisher::composeURI($result);
 			}
 			
 			return $result;
