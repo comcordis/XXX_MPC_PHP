@@ -5,7 +5,8 @@ class XXX_MPC_Destination
 	public $project = '';
 	public $deployIdentifier = 'latest';
 	
-	public $isStatic = false;
+	public $isReservedRoute = false;
+	public $parsedReservedRoute = false;
 	
 	public $currentPartIndex = 0;
 	
@@ -82,9 +83,9 @@ class XXX_MPC_Destination
 			
 			if ($this->parsedModule)
 			{
-				$this->findAndInitializeStatic();
+				$this->findAndInitializeReservedRoute();
 		
-				if (!$this->isStatic)
+				if (!$this->isReservedRoute)
 				{					
 					$this->findAndLoadController();
 					
@@ -133,7 +134,7 @@ class XXX_MPC_Destination
 		}
 	}
 	
-	public function tryRewritingRouteRemainder ($where = '')
+	public function tryRewritingRouteRemainder ()
 	{
 		// Determine the remainder
 		$tempRewrittenRoutePartsRemainder = array_slice($this->rewrittenRouteParts, $this->currentPartIndex);
@@ -169,63 +170,129 @@ class XXX_MPC_Destination
 		}
 	}
 	
-	public function findAndInitializeStatic ()
+	public function getRewrittenRouteRemainder ($start = 4)
 	{
-		if (!$this->parsedStatic)
+		$result = '';
+		
+		for ($i = $start, $iEnd = (XXX_Array::getFirstLevelItemTotal($this->rewrittenRouteParts)); $i < $iEnd; ++$i)
+		{
+			$result .= $this->rewrittenRouteParts[$i];
+			
+			if ($i < $iEnd - 1)
+			{
+				$result .= '/';	
+			}
+		}
+		
+		return $result;
+	}
+	
+	public function findAndInitializeReservedRoute ()
+	{
+		if (!$this->parsedReservedRoute)
 		{
 			// Strip prefixes first
-			$this->tryRewritingRouteRemainder('static');
+			$this->tryRewritingRouteRemainder();
 			
-			if ($this->rewrittenRouteParts[0] == 'httpServer')
+			if ($this->rewrittenRouteParts[0] == 'httpServer' && $this->rewrittenRouteParts[2] == 'static')
 			{
-				//if ($this->rewrittenRouteParts[1] == 'www')
-				//{
-					if ($this->rewrittenRouteParts[2] == 'static')
-					{
-						switch ($this->rewrittenRouteParts[3])
+				switch ($this->rewrittenRouteParts[3])
+				{
+					case 'file':
+						$file = XXX_HTTPServer_Client_Input::getURIVariable('file');
+						if ($file == '')
 						{
-							case 'file':
-								$route = '';
-								
-								for ($i = 4, $iEnd = (XXX_Array::getFirstLevelItemTotal($this->rewrittenRouteParts)); $i < $iEnd; ++$i)
-								{
-									$route .= $this->rewrittenRouteParts[$i];
-									
-									if ($i < $iEnd - 1)
-									{
-										$route .= '/';	
-									}
-								}
-								
-								$compress = XXX_HTTPServer_Client_Input::getURIVariable('compress', 'boolean');
-																
-								XXX_Static_HTTPServer::singleFile($route, $compress);
-								
-								$this->fullyTraversedRouteParts = true;
-								
-								$this->executed = true;
-								
-								$this->isStatic = true;
-								break;
-							case 'combinedFiles':
-								$files = XXX_HTTPServer_Client_Input::getURIVariable('files');
-								$fileType = XXX_HTTPServer_Client_Input::getURIVariable('fileType');
-								$compress = XXX_HTTPServer_Client_Input::getURIVariable('compress', 'boolean');
-								
-								XXX_Static_HTTPServer::combinedFiles($files, $fileType, $compress);
-								
-								$this->fullyTraversedRouteParts = true;
-								
-								$this->executed = true;
-								
-								$this->isStatic = true;
-								break;
+							$file = $this->getRewrittenRouteRemainder(4);
 						}
+														
+						XXX_Static_HTTPServer::serveFile($file);
+						
+						$this->fullyTraversedRouteParts = true;
+						
+						$this->executed = true;
+						
+						$this->isReservedRoute = true;
+						break;
+					case 'files':
+						$files = XXX_HTTPServer_Client_Input::getURIVariable('files');
+						
+						XXX_Static_HTTPServer::serveFiles($files);
+						
+						$this->fullyTraversedRouteParts = true;
+						
+						$this->executed = true;
+						
+						$this->isReservedRoute = true;
+						break;
+				}
+			}
+			else
+			{
+				$firstArgument = $this->rewrittenRouteParts[3];
+				$secondArgument = $this->rewrittenRouteParts[4];
+				
+				$authorized = false;
+				
+				if ($this->rewrittenRouteParts[0] == 'httpServer')
+				{
+					if (XXX_PHP::$development)
+					{
+						$authorized = true;
 					}
-				//}
+				}
+				else
+				{
+					$authorized = true;
+				}
+				
+				if ($authorized)
+				{
+					switch ($this->rewrittenRouteParts[2])
+					{
+						case 'displayOriginalPHPInformation':
+							XXX_PHP::displayOriginalPHPInformation();
+							break;
+						case 'processTask':
+							$task = $firstArgument;
+							$argument = $secondArgument;
+							
+							$result = XXX_Task::processTask($task, $argument);
+			
+							echo 'Task "' . $task . '" ' . $result ? 'processed' : 'failed' . XXX_OperatingSystem::$lineSeparator;
+							
+							$this->fullyTraversedRouteParts = true;
+							$this->executed = true;
+							$this->isReservedRoute = true;
+							break;
+						case 'queueAsynchronousTask':
+							$task = $firstArgument;
+							$argument = $secondArgument;
+							
+							$result = XXX_Task::queueAsynchronousTask($task, $argument);
+							
+							echo 'Task "' . $task . '" queued in < 5 min.' . XXX_OperatingSystem::$lineSeparator;
+							
+							$this->fullyTraversedRouteParts = true;						
+							$this->executed = true;
+							$this->isReservedRoute = true;
+							break;
+						case 'dispatchEventToListeners':
+							$event = $firstArgument;
+							$argument = $secondArgument;
+							
+							$result = XXX_Task::dispatchEventToListeners($task, $argument);
+							
+							echo 'Event "' . $event . '" ' . $result ? 'succeeded' : 'failed' . XXX_OperatingSystem::$lineSeparator;
+							
+							$this->fullyTraversedRouteParts = true;
+							$this->executed = true;
+							$this->isReservedRoute = true;
+							break;
+					}
+				}
 			}
 			
-			$this->parsedStatic = true;
+			$this->parsedReservedRoute = true;
 		}
 	}
 	
