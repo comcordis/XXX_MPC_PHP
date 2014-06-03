@@ -242,6 +242,10 @@ class XXX_MPC_Destination
 					{
 						case 'displayOriginalPHPInformation':
 							XXX_PHP::displayOriginalPHPInformation();
+							
+							$this->fullyTraversedRouteParts = true;
+							$this->executed = true;
+							$this->isReservedRoute = true;
 							break;
 						case 'processTask':
 							$task = $firstArgument;
