@@ -70,7 +70,7 @@ class XXX_MPC_Destination
 		
 		$this->presenterContext = $presenterContext;
 		
-		$this->canonicalModulePathPrefix = XXX_Path_Local::composeOtherProjectDeploymentSourcePathPrefix($this->project, $this->deployIdentifier);
+		$this->canonicalModulePathPrefix = XXX_Path_Local::composeProjectDeploymentSourcePathPrefix($this->project, $this->deployIdentifier);
 		
 	}
 	
@@ -242,6 +242,13 @@ class XXX_MPC_Destination
 					{
 						case 'displayOriginalPHPInformation':
 							XXX_PHP::displayOriginalPHPInformation();
+							
+							$this->fullyTraversedRouteParts = true;
+							$this->executed = true;
+							$this->isReservedRoute = true;
+							break;
+						case 'generateDocumentation':
+							XXX_Documentation::generate();
 							
 							$this->fullyTraversedRouteParts = true;
 							$this->executed = true;
@@ -586,7 +593,7 @@ class XXX_MPC_Destination
 	
 	public function composePaths ()
 	{
-		$projectDeploymentSourcePathPrefix = XXX_Path_Local::composeOtherProjectDeploymentSourcePathPrefix($this->project, $this->deployIdentifier);
+		$projectDeploymentSourcePathPrefix = XXX_Path_Local::composeProjectDeploymentSourcePathPrefix($this->project, $this->deployIdentifier);
 		
 		$this->pathPrefixes['projectModulePathPrefix'] = $projectDeploymentSourcePathPrefix;
 		$this->pathPrefixes['projectControllersPathPrefix'] = $projectDeploymentSourcePathPrefix . XXX_MPC_Router::$directoryNames['controllers'] . XXX_OperatingSystem::$directorySeparator;
