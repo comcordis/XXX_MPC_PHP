@@ -247,6 +247,13 @@ class XXX_MPC_Destination
 							$this->executed = true;
 							$this->isReservedRoute = true;
 							break;
+						case 'testHTTPFileUpload':
+							XXX_HTTPServer_Client_Input::testFileUpload();
+							
+							$this->fullyTraversedRouteParts = true;
+							$this->executed = true;
+							$this->isReservedRoute = true;
+							break;
 						case 'generateDocumentation':
 							XXX_Documentation::generate();
 							
