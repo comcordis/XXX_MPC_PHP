@@ -226,7 +226,7 @@ class XXX_MPC_Destination
 				
 				if ($this->rewrittenRouteParts[0] == 'httpServer')
 				{
-					if (XXX_PHP::$development)
+					if (XXX_SpecialContext::$developer)
 					{
 						$authorized = true;
 					}
@@ -242,13 +242,6 @@ class XXX_MPC_Destination
 					{
 						case 'displayOriginalPHPInformation':
 							XXX_PHP::displayOriginalPHPInformation();
-							
-							$this->fullyTraversedRouteParts = true;
-							$this->executed = true;
-							$this->isReservedRoute = true;
-							break;
-						case 'testHTTPFileUpload':
-							XXX_HTTPServer_Client_Input::testFileUpload();
 							
 							$this->fullyTraversedRouteParts = true;
 							$this->executed = true;
