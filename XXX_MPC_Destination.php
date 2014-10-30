@@ -392,25 +392,28 @@ class XXX_MPC_Destination
 					
 					XXX_Path_Local::addDefaultIncludePathsForPath($this->canonicalModulePathPrefix);
 					
-					if ((include_once $moduleInitializerFilePath))
+					if (is_file($moduleInitializerFilePath))
 					{
-						// The initializer didn't continue the route
-						if ($beforeCurrentPartIndex == $this->currentPartIndex)
+						if ((include_once $moduleInitializerFilePath))
 						{
-						}
-					}
-					else
-					{
-						if (!XXX_MPC_Router::$requireModuleInitializer)
-						{
+							// The initializer didn't continue the route
+							if ($beforeCurrentPartIndex == $this->currentPartIndex)
+							{
+							}
 						}
 						else
 						{
-							$this->error = 'invalidInitializer';
-							
-							trigger_error('No initializer for ' . $this->canonicalModulePathPrefix);
+							if (!XXX_MPC_Router::$requireModuleInitializer)
+							{
+							}
+							else
+							{
+								$this->error = 'invalidInitializer';
+								
+								trigger_error('No initializer for ' . $this->canonicalModulePathPrefix);
+							}
 						}
-					}
+					}					
 				}
 			}
 		}
