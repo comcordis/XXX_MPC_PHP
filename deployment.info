@@ -1,0 +1,6 @@
+project:XXX_MPC_PHP
+deployEnvironment:development
+checkout:master
+commitHash:0e70ef9cf7fc4a23ac6e204e2714804ff0eb384b
+timestamp:2015-04-13T09:44:54Z
+deployer:operations
