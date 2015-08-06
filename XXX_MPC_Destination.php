@@ -668,7 +668,8 @@ class XXX_MPC_Destination
 				$controllerInstance = new $this->canonicalControllerName();
 				$controllerInstance->setDestination($this);
 				$controllerInstance->setPresenterContext($this->presenterContext);
-				
+
+                //call_user_func(array($controllerInstance, str_replace('.php', '' , $this->canonicalActionName)), $this->arguments);
 				call_user_func(array($controllerInstance, $this->canonicalActionName), $this->arguments);
 				
 				$this->executed = true;

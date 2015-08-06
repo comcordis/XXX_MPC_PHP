@@ -26,17 +26,17 @@ class XXX_MPC_PresenterContext
 		{
 			$this->settings[$key] = $value;
 		}
-		
+
 		public function getSetting ($key = '')
 		{
 			return $this->settings[$key];
 		}
-		
+
 		public function getSettings ()
 		{
 			return $this->settings;
 		}
-		
+
 		public function resetSettings ()
 		{
 			$this->settings = array
@@ -45,9 +45,9 @@ class XXX_MPC_PresenterContext
 				'automaticallyResetVariables' => false
 			);
 		}
-			
+
 	// Destination
-	
+
 		public function setDestination ($destination = false)
 		{
 			if ($destination !== false)
@@ -55,17 +55,17 @@ class XXX_MPC_PresenterContext
 				$this->destinations[] = $destination;
 			}
 		}
-		
+
 		public function getDestination ($type = 'current')
 		{
 			$result = false;
-			
+
 			if (XXX_Array::getFirstLevelItemTotal($this->destinations) > 0)
 			{
 				switch ($type)
 				{
 					case 'current':
-						$result = $this->destinations[XXX_Array::getFirstLevelItemTotal($this->destinations) - 1];						
+						$result = $this->destinations[XXX_Array::getFirstLevelItemTotal($this->destinations) - 1];
 						break;
 					case 'original':
 						$result = $this->destinations[0];
@@ -73,57 +73,66 @@ class XXX_MPC_PresenterContext
 					case 'previous':
 						if (XXX_Array::getFirstLevelItemTotal($this->destinations) > 1)
 						{
-							$result = $this->destinations[XXX_Array::getFirstLevelItemTotal($this->destinations) - 2];						
+							$result = $this->destinations[XXX_Array::getFirstLevelItemTotal($this->destinations) - 2];
 						}
 						break;
 				}
 			}
-			
+
 			return $result;
 		}
-		
+
 		public function getPathPrefixes ($destinationType = 'current')
 		{
 			$result = false;
-			
+
 			$destination = $this->getDestination($destinationType);
-			
+
 			if ($destination !== false)
 			{
 				$result = $destination->getPathPrefixes($key);
 			}
-			
+
 			return $result;
 		}
-		
+
 		public function getPathPrefix ($key = '', $destinationType = 'current')
 		{
 			$result = false;
-			
+
 			$destination = $this->getDestination($destinationType);
-			
+
 			if ($destination !== false)
 			{
 				$result = $destination->getPathPrefix($key);
 			}
-			
+
 			return $result;
 		}
-		
+
+      /**
+       * Haal de URI van een file op al kijkende naar de beschikbare cache files op de static.
+       * Indien je de caching wilt omzeilen dan moet je de static.cacheMapping.php op de Comcordis_Static (telkens) verwijderen.
+       *
+       * @param string $key
+       * @param string $suffix
+       * @param string $destinationType
+       * @return bool|string
+       */
 		public function getURIPathPrefix ($key = '', $suffix = '', $destinationType = 'current')
 		{
 			$result = false;
-			
+
 			$destination = $this->getDestination($destinationType);
-			
+
 			if ($destination !== false)
 			{
 				$result = $destination->getURIPathPrefix($key);
 				$result .= $suffix;
-				
+
 				$result = XXX_Static_Publisher::composeURI($result);
 			}
-			
+
 			return $result;
 		}
 		
